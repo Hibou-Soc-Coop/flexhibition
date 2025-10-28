@@ -49,8 +49,8 @@ console.log(museumsRoutes.show(1).url);
                        :route="museumsRoutes"
                        :id="museum.id"
                        :title="museum.contents[primaryLanguageCode].name"
-                       :description="truncate(museum.contents[primaryLanguageCode].description, 60)"
-                       :iconUrl="museum.logo[primaryLanguageCode].media_url"></Card>
+                       :excerpt="truncate(museum.contents[primaryLanguageCode].description, 60)"
+                       :thumbnail="museum.logo[primaryLanguageCode].media_url"></Card>
                 <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center">
                     No museums found.
                 </div>

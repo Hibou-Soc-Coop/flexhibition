@@ -54,7 +54,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </div>
                         <div v-if="contents[language.language_code].museum_audio">
                             <span class="block mb-1 font-medium text-gray-600">Audio</span>
-                            <HMediaUploader v-model:model-value="contents[language.language_code].museum_audio"
+                            <MediaUploader v-model:model-value="contents[language.language_code].museum_audio"
                                             accept="audio/*"
                                             isReadonly
                                             class="mb-4" />

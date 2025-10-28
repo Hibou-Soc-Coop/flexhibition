@@ -1,20 +1,22 @@
 {
+    "bracketSpacing": true,
+    "experimentalTernaries": true,
     "semi": true,
     "singleQuote": true,
     "singleAttributePerLine": false,
     "htmlWhitespaceSensitivity": "css",
-    "printWidth": 80,
+    "printWidth": 150,
     "plugins": [
         "prettier-plugin-organize-imports",
         "prettier-plugin-tailwindcss"
     ],
     "tailwindFunctions": [
         "clsx",
-        "cn",
-        "cva"
+        "cn"
     ],
     "tailwindStylesheet": "resources/css/app.css",
     "tabWidth": 4,
+    "useTabs": false,
     "overrides": [
         {
             "files": "**/*.yml",

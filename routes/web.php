@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MuseumController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,6 +17,8 @@ Route::prefix('backend')->group(function () {
         return Inertia::render('backend/Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
+    Route::resource('languages', LanguageController::class)->middleware(['auth', 'verified']);
+    Route::resource('media', MediaController::class)->middleware(['auth', 'verified']);
     Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
 });
 
