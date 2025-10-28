@@ -41,8 +41,7 @@ class QrCode extends Model
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
+    protected function casts(): array {
         return [
             'type' => 'string',
         ];
@@ -51,40 +50,35 @@ class QrCode extends Model
     /**
      * Get the museum that owns this QR code.
      */
-    public function museum(): BelongsTo
-    {
+    public function museum(): BelongsTo {
         return $this->belongsTo(Museum::class);
     }
 
     /**
      * Get the QR image media.
      */
-    public function qrImage(): BelongsTo
-    {
+    public function qrImage(): BelongsTo {
         return $this->belongsTo(Media::class, 'qr_image_id');
     }
 
     /**
      * Get the post associated with this QR code.
      */
-    public function post(): HasOne
-    {
+    public function post(): HasOne {
         return $this->hasOne(Post::class);
     }
 
     /**
      * Get the exhibition associated with this QR code.
      */
-    public function exhibition(): HasOne
-    {
+    public function exhibition(): HasOne {
         return $this->hasOne(Exhibition::class);
     }
 
     /**
      * Get the dynamic URL for this QR code.
      */
-    protected function url(): Attribute
-    {
+    protected function url(): Attribute {
         return Attribute::make(
             get: function (): ?string {
                 try {
@@ -113,16 +107,14 @@ class QrCode extends Model
     /**
      * Check if this QR code is assigned.
      */
-    public function isAssigned(): bool
-    {
+    public function isAssigned(): bool {
         return $this->post()->exists() || $this->exhibition()->exists();
     }
 
     /**
      * Check if this QR code is available.
      */
-    public function isAvailable(): bool
-    {
+    public function isAvailable(): bool {
         return !$this->isAssigned();
     }
 }
