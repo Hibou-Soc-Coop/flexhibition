@@ -9,16 +9,18 @@ const props = defineProps<CustomProps>();
 
 function getColorClasses(scheme?: string) {
   switch (scheme) {
+    case 'show':
+      return 'bg-flex-show-400 hover:bg-flex-show-600 text-white font-semibold';
     case 'create':
-      return 'bg-green-500 hover:bg-green-600 text-white font-semibold';
+      return 'bg-flex-create-400 hover:bg-flex-create-600 text-white font-semibold';
     case 'save':
-      return 'bg-blue-500 hover:bg-blue-600 text-white font-semibold';
+      return 'bg-flex-save-400 hover:bg-flex-save-600 text-white font-semibold';
     case 'edit':
-      return 'bg-yellow-500 hover:bg-yellow-600 text-white font-semibold';
-    case 'archive':
-      return 'bg-slate-500 hover:bg-slate-600 text-white font-semibold';
+      return 'bg-flex-edit-400 hover:bg-flex-edit-600 text-white font-semibold';
+    // case 'archive':
+    //   return 'bg-flex-archive hover:bg-slate-600 text-white font-semibold';
     case 'delete':
-      return 'bg-red-500 hover:bg-red-600 text-white font-semibold';
+      return 'bg-flex-delete-400 hover:bg-flex-delete-600 text-white font-semibold';
     default:
       return 'bg-gray-500 hover:bg-gray-600 text-white font-semibold';
   }
