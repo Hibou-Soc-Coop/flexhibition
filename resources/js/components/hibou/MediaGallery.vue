@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { router } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-
-// Helper per generare le route (assumo che sia disponibile globalmente)
-const route = (name: string, params?: any) => {
-    const routes: Record<string, string> = {
-        'media.destroy': `/media/${params}`,
-        'media.bulk-delete': '/media/bulk-delete',
-    };
-    return routes[name] || '';
-};
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { router, useForm } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import Button from './Button.vue';
+import mediaRoutes from '@/routes/media';
 
 interface MediaItem {
     id: number;
@@ -25,7 +18,7 @@ interface MediaItem {
 interface Props {
     mediaItems: MediaItem[];
     primaryLanguage?: { code: string; name: string };
-    isNewMediaOpen?: boolean;
+    languages?: Array<{ code: string; name: string }>;
     onUpload?: () => void;
 }
 
@@ -37,6 +30,7 @@ const isNewMediaOpen = defineModel('isNewMediaOpen', {
 const props = withDefaults(defineProps<Props>(), {
     mediaItems: () => [],
     primaryLanguage: () => ({ code: 'it', name: 'Italiano' }),
+    languages: () => [{ code: 'it', name: 'Italiano' }],
 });
 
 // State
@@ -45,7 +39,21 @@ const selectedType = ref<string>('all');
 const sortBy = ref<'newest' | 'oldest' | 'name-asc' | 'name-desc'>('newest');
 const searchQuery = ref('');
 const selectedItems = ref<Set<number>>(new Set());
-const isDragging = ref(false);
+const isDialogDragging = ref(false);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const selectedFiles = ref<File[]>([]);
+const uploadProgress = ref<number>(0);
+
+// Form per ogni file da caricare
+interface UploadFormData {
+    type: 'image' | 'video' | 'audio';
+    file: File | null;
+    title: Record<string, string>;
+    description: Record<string, string>;
+}
+
+const currentUploadIndex = ref<number>(0);
+const isUploading = ref<boolean>(false);
 
 // Computed
 const filteredAndSortedMedia = computed(() => {
@@ -115,25 +123,26 @@ const deleteSelected = () => {
 
         // Se c'è un solo elemento, usa la route destroy standard
         if (ids.length === 1) {
-            router.delete(route('media.destroy', ids[0]), {
+            router.delete(mediaRoutes.destroy(ids[0]), {
                 onSuccess: () => {
                     selectedItems.value.clear();
                 },
             });
-        } else {
-            // Per eliminazioni multiple, dovrai implementare una route apposita
-            router.post(
-                route('media.bulk-delete'),
-                {
-                    ids: ids,
-                },
-                {
-                    onSuccess: () => {
-                        selectedItems.value.clear();
-                    },
-                },
-            );
         }
+        // else {
+        //     // Per eliminazioni multiple, dovrai implementare una route apposita
+        //     router.post(
+        //         mediaRoutes.bulkDelete,
+        //         {
+        //             ids: ids,
+        //         },
+        //         {
+        //             onSuccess: () => {
+        //                 selectedItems.value.clear();
+        //             },
+        //         },
+        //     );
+        // }
     }
 };
 
@@ -154,48 +163,137 @@ const getMediaIcon = (type: string): string => {
     return icons[type] || '📄';
 };
 
-// Drag and Drop
-const handleDragEnter = (e: DragEvent) => {
-    e.preventDefault();
-    isDragging.value = true;
+// Dialog Upload Functions
+const openFilePicker = () => {
+    fileInputRef.value?.click();
 };
 
-const handleDragLeave = (e: DragEvent) => {
-    e.preventDefault();
-    if (e.target === e.currentTarget) {
-        isDragging.value = false;
+const handleFileSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+        selectedFiles.value = Array.from(target.files);
     }
 };
 
-const handleDragOver = (e: DragEvent) => {
+const handleDialogDragEnter = (e: DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    isDialogDragging.value = true;
 };
 
-const handleDrop = (e: DragEvent) => {
+const handleDialogDragLeave = (e: DragEvent) => {
     e.preventDefault();
-    isDragging.value = false;
+    e.stopPropagation();
+    if (e.target === e.currentTarget) {
+        isDialogDragging.value = false;
+    }
+};
+
+const handleDialogDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+};
+
+const handleDialogDrop = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isDialogDragging.value = false;
 
     const files = e.dataTransfer?.files;
-    if (files && files.length > 0 && props.onUpload) {
-        // Chiama la funzione di upload passata come prop
+    if (files && files.length > 0) {
+        selectedFiles.value = Array.from(files);
+    }
+};
+
+const removeFile = (index: number) => {
+    selectedFiles.value.splice(index, 1);
+};
+
+const detectFileType = (file: File): 'image' | 'video' | 'audio' | 'document' => {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type.startsWith('audio/')) return 'audio';
+    return 'document';
+};
+
+const uploadFiles = async () => {
+    if (selectedFiles.value.length === 0) return;
+    
+    isUploading.value = true;
+    currentUploadIndex.value = 0;
+
+    // Carica i file uno alla volta
+    for (let i = 0; i < selectedFiles.value.length; i++) {
+        currentUploadIndex.value = i;
+        const file = selectedFiles.value[i];
+        const fileType = detectFileType(file);
+
+        // Prepara il titolo per tutte le lingue (usa il nome del file senza estensione)
+        const title: Record<string, string> = {};
+        const description: Record<string, string> = {};
+        const fileName = file.name.replace(/\.[^/.]+$/, ''); // Rimuove l'estensione
+        
+        props.languages.forEach((lang) => {
+            title[lang.code] = fileName;
+            description[lang.code] = '';
+        });
+
+        // Crea il form Inertia
+        const form = useForm({
+            type: fileType,
+            file: file,
+            title: title,
+            description: description,
+        });
+
+        // Upload con promise per aspettare il completamento
+        await new Promise<void>((resolve, reject) => {
+            form.post(mediaRoutes.store.url(), {
+                forceFormData: true,
+                onProgress: (progress) => {
+                    if (progress && typeof progress.percentage === 'number') {
+                        uploadProgress.value = progress.percentage;
+                    }
+                },
+                onSuccess: () => {
+                    resolve();
+                },
+                onError: (errors) => {
+                    console.error('Errore upload:', errors);
+                    reject(errors);
+                },
+            });
+        });
+    }
+
+    // Reset e chiudi
+    isUploading.value = false;
+    selectedFiles.value = [];
+    uploadProgress.value = 0;
+    isNewMediaOpen.value = false;
+    
+    // Chiama la callback se fornita
+    if (props.onUpload) {
         props.onUpload();
     }
 };
 
-// Cleanup
-onMounted(() => {
-    document.addEventListener('dragenter', handleDragEnter);
-    document.addEventListener('dragleave', handleDragLeave);
-    document.addEventListener('dragover', handleDragOver);
-    document.addEventListener('drop', handleDrop);
+// Resetta lo stato quando il dialog si chiude
+watch(isNewMediaOpen, (newValue) => {
+    if (!newValue && !isUploading.value) {
+        selectedFiles.value = [];
+        uploadProgress.value = 0;
+        currentUploadIndex.value = 0;
+    }
 });
 
-onUnmounted(() => {
-    document.removeEventListener('dragenter', handleDragEnter);
-    document.removeEventListener('dragleave', handleDragLeave);
-    document.removeEventListener('dragover', handleDragOver);
-    document.removeEventListener('drop', handleDrop);
-});
+const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
 </script>
 
 <template>
@@ -315,32 +413,131 @@ onUnmounted(() => {
             </div>
         </div>
 
-        <Dialog :open="isNewMediaOpen">
-            <DialogContent>
+        <Dialog v-model:open="isNewMediaOpen">
+            <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Edit profile</DialogTitle>
-                    <DialogDescription> Make changes to your profile here. Click save when you're done. </DialogDescription>
+                    <DialogTitle>Carica nuovi file</DialogTitle>
+                    <DialogDescription>Seleziona i file da caricare o trascinali qui</DialogDescription>
                 </DialogHeader>
 
-                <DialogFooter> Save changes </DialogFooter>
+                <div class="space-y-4">
+                    <!-- Barra di progresso durante l'upload -->
+                    <div v-if="isUploading" class="space-y-3">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-medium text-gray-900">
+                                Caricamento file {{ currentUploadIndex + 1 }} di {{ selectedFiles.length }}...
+                            </span>
+                            <span class="text-gray-600">{{ Math.round(uploadProgress) }}%</span>
+                        </div>
+                        <div class="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                            <div 
+                                class="h-full bg-flex-select-600 transition-all duration-300"
+                                :style="{ width: `${uploadProgress}%` }"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- Area di Drop/Click -->
+                    <div
+                        v-else
+                        @click="openFilePicker"
+                        @dragenter="handleDialogDragEnter"
+                        @dragleave="handleDialogDragLeave"
+                        @dragover="handleDialogDragOver"
+                        @drop="handleDialogDrop"
+                        :class="[
+                            'relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-all',
+                            isDialogDragging
+                                ? 'border-flex-select-600 bg-flex-select-50'
+                                : 'border-gray-300 bg-gray-50 hover:border-flex-select-400 hover:bg-gray-100',
+                        ]"
+                    >
+                        <input
+                            ref="fileInputRef"
+                            type="file"
+                            multiple
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+                            @change="handleFileSelect"
+                            class="hidden"
+                        />
+
+                        <svg class="mb-3 h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                        </svg>
+
+                        <p class="mb-2 text-sm font-medium text-gray-900">
+                            Clicca per selezionare o trascina i file qui
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Immagini, video, audio o documenti (max 10MB per file)
+                        </p>
+                    </div>
+
+                    <!-- Lista file selezionati -->
+                    <div v-if="selectedFiles.length > 0" class="space-y-2">
+                        <h4 class="text-sm font-medium text-gray-900">
+                            File selezionati ({{ selectedFiles.length }})
+                        </h4>
+                        <div class="max-h-[300px] space-y-2 overflow-y-auto">
+                            <div
+                                v-for="(file, index) in selectedFiles"
+                                :key="index"
+                                class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3"
+                            >
+                                <!-- Icona tipo file -->
+                                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xl">
+                                    {{ file.type.startsWith('image/') ? '🖼️' : file.type.startsWith('video/') ? '🎥' : file.type.startsWith('audio/') ? '🎵' : '📄' }}
+                                </div>
+
+                                <!-- Info file -->
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-medium text-gray-900">
+                                        {{ file.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ formatFileSize(file.size) }}
+                                    </p>
+                                </div>
+
+                                <!-- Pulsante rimuovi -->
+                                <button
+                                    @click.stop="removeFile(index)"
+                                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                    title="Rimuovi file"
+                                >
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter class="gap-2">
+                    <Button 
+                        variant="outline" 
+                        @click="isNewMediaOpen = false"
+                        :disabled="isUploading"
+                    >
+                        Annulla
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        @click="uploadFiles"
+                        :disabled="selectedFiles.length === 0 || isUploading"
+                    >
+                        <span v-if="isUploading">Caricamento...</span>
+                        <span v-else>Carica {{ selectedFiles.length > 0 ? `(${selectedFiles.length})` : '' }}</span>
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
-
-        <!-- Overlay per drag & drop -->
-        <div v-if="isDragging" class="bg-opacity-20 absolute inset-0 z-50 flex items-center justify-center bg-blue-500 backdrop-blur-sm">
-            <div class="rounded-xl bg-white p-12 text-center shadow-2xl">
-                <svg class="mx-auto mb-4 h-20 w-20 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                </svg>
-                <h3 class="mb-2 text-2xl font-bold text-gray-900">Rilascia i file qui</h3>
-                <p class="text-gray-600">I file verranno caricati nella galleria</p>
-            </div>
-        </div>
 
         <!-- Griglia media -->
         <div class="relative rounded-lg border border-gray-200 bg-gray-50 p-6">

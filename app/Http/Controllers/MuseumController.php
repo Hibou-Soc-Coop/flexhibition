@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\Settings;
 use App\Models\Museum;
 use App\Models\MuseumImage;
 use App\Models\Content;
 use App\Models\Media;
 use App\Models\Language;
-use App\Facades\Setting;
 use App\Helpers\LanguageHelper;
 use App\Http\Requests\StoreMuseumRequest;
 use App\Http\Requests\UpdateMuseumRequest;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +27,8 @@ class MuseumController extends Controller
     {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
         $primaryLanguageCode = $primaryLanguage->code;
-        $maxMuseums = env('MAX_MUSEUM_RECORDS');
-
+        $maxMuseums = Settings::get('max_museum_records');
+        
         $museumRecords = Museum::with('logo')->get();
 
         $museums = [];
@@ -57,7 +56,7 @@ class MuseumController extends Controller
     public function create()
     {
         $museums = Museum::count();
-        $maxMuseums = Setting::get('max_museum_records');
+        $maxMuseums = Settings::get('max_museum_records');
 
         if ($museums >= $maxMuseums) {
             return redirect()->route('museums.index')->with('error', 'Non è possibile creare ulteriori musei.');

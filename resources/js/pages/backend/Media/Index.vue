@@ -7,7 +7,11 @@ import { Language } from '@/types/flexhibition';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const props = defineProps<{ primaryLanguage: Language; mediaItems: Array<any> }>();
+const props = defineProps<{ 
+    primaryLanguage: Language; 
+    languages: Language[];
+    mediaItems: Array<any>;
+}>();
 
 const isNewMediaOpen = ref(false);
 </script>
@@ -21,8 +25,9 @@ const isNewMediaOpen = ref(false);
             </template>
                 <MediaGallery
                     :mediaItems="props.mediaItems"
-                    :primary-language="props.primaryLanguage"
-                    :is-new-media-open="isNewMediaOpen"
+                    :primaryLanguage="props.primaryLanguage"
+                    :languages="props.languages"
+                    v-model:isNewMediaOpen="isNewMediaOpen"
                 />
         </PageLayout>
     </AppLayout>

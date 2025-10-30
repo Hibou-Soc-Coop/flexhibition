@@ -18,7 +18,7 @@ Route::prefix('backend')->group(function () {
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::resource('languages', LanguageController::class)->middleware(['auth', 'verified']);
-    Route::resource('media', MediaController::class)->middleware(['auth', 'verified']);
+    Route::resource('media', MediaController::class)->middleware(['auth', 'verified'])->names('media');
     Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
 });
 

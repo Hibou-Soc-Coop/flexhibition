@@ -7,6 +7,7 @@ use App\Models\Language;
 use App\Models\Media;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {
@@ -15,10 +16,12 @@ class MediaController extends Controller
      */
     public function index() {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
+        $languages = Language::all();
         $mediaItems = Media::all();
 
         return Inertia::render('backend/Media/Index', [
             'primaryLanguage' => $primaryLanguage,
+            'languages' => $languages,
             'mediaItems' => $mediaItems,
         ]);
     }
@@ -96,6 +99,18 @@ class MediaController extends Controller
      */
     public function destroy(string $id) {
         $mediaItem = Media::findOrFail($id);
+        
+        $url = $mediaItem->getTranslations('url'); 
+        
+        if (!empty($url)) {
+            $filePath = is_array($url) ? reset($url) : $url;
+            
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+        }
+        
+        // Elimina il record dal database
         $mediaItem->delete();
 
         return redirect()->route('media.index')->with('success', 'Media eliminato con successo.');
