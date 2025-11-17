@@ -22,6 +22,10 @@ Route::prefix('backend')->group(function () {
     Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
 });
 
+Route::get('/museum', function () {
+    return Inertia::render('frontend/Museums/Index');
+})->name('museum.index');
+
 
 
 require __DIR__ . '/settings.php';
