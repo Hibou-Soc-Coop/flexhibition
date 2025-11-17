@@ -36,48 +36,60 @@ export interface MediaInfo {
 }
 
 /** Museo (dati base, riferimenti a media) */
-export interface Museum {
-    readonly museum_id: number;
-    readonly museum_name_id: number;
-    readonly museum_description_id?: number;
-    readonly museum_logo_id?: number;
-    readonly museum_audio_id?: number;
+export interface MuseumRecord {
+    readonly id: number;
+    readonly name: string;
+    readonly description: string;
+    readonly logo_id?: number;
+    readonly audio_id?: number;
 }
 
 /** Informazioni multilingua su un museo */
-export interface MuseumInfo {
+export interface MuseumData {
     readonly id: string;
-    readonly contents: Record<
-        string,
-        {
-            name: string;
-            description?: string;
-        }
-    >;
-    readonly logo: Record<
-        string,
-        {
-            media_url: string;
-            media_title: string;
-            media_description?: string;
-        }
-    >;
-    readonly audio: Record<
-        string,
-        {
-            media_url: string;
-            media_title: string;
-            media_description?: string;
-        }
-    >;
-    readonly images: Record<
-        string,
-        {
-            media_url: string;
-            media_title: string;
-            media_description?: string;
-        }
-    >;
+    readonly name: Record<string, string>;
+    readonly description: Record<string, string>;
+    readonly logo: {
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    };
+    readonly audio: {
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    }
+    readonly images: Record<string, {
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    }>;
+}
+
+export interface MuseumUploadData extends MuseumData {
+    readonly logo: {
+        id: number | null;
+        file?: Record<string, File>;
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    };
+
+    readonly audio: {
+        id: number | null;
+        file?: Record<string, File>;
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    };
+
+    readonly images: Record<string, {
+        id: number | null;
+        file?: Record<string, File>;
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    }>;
 }
 
 /** Mostra (dati base, riferimenti a media) */
@@ -212,12 +224,13 @@ export interface ExhibitionPostInfo {
     readonly museum_point_id?: string;
 }
 
-export interface ImageItem extends Record<string, any> {
-    media_id: number | null;
-    media_file: File | number | null;
-    media_caption: Record<string, string>;
-    media_preview: string;
-    media_to_delete: boolean;
+export interface ImageData extends Record<string, any> {
+    id: number | null;
+    file?: Record<string, File>;
+    url?: Record<string, string>;
+    title: Record<string, string>;
+    description?: Record<string, string>;
+    to_delete?: boolean;
 }
 
 type RouteFunction = (...args: any[]) => { url: string; method: string };

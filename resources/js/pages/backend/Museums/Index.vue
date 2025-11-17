@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { usePage, router } from '@inertiajs/vue3';
 import  Button from '@/components/hibou/Button.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type Language, MuseumInfo } from '@/types/flexhibition';
+import { type Language, MuseumData } from '@/types/flexhibition';
 import Card from '@/components/hibou/Card.vue';
 
 import museumsRoutes from '@/routes/museums';
@@ -12,9 +12,9 @@ import museumsRoutes from '@/routes/museums';
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
-const primaryLanguageCode = primaryLanguage?.language_code || 'it';
+const primaryLanguageCode = primaryLanguage?.code || 'it';
 
-const props = defineProps<{ museums: MuseumInfo[], maxMuseum: string }>();
+const props = defineProps<{ museums: MuseumData[], maxMuseum: Number }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -29,8 +29,6 @@ function truncate(text: string | undefined, maxLength: number): string {
         ? text.substring(0, maxLength) + '...'
         : text;
 }
-
-console.log(museumsRoutes.show(1).url);
 
 </script>
 
@@ -48,9 +46,9 @@ console.log(museumsRoutes.show(1).url);
                        v-for="museum in props.museums"
                        :route="museumsRoutes"
                        :id="museum.id"
-                       :title="museum.contents[primaryLanguageCode].name"
-                       :excerpt="truncate(museum.contents[primaryLanguageCode].description, 60)"
-                       :thumbnail="museum.logo[primaryLanguageCode].media_url"></Card>
+                       :title="museum.name[primaryLanguageCode]"
+                       :excerpt="truncate(museum.description[primaryLanguageCode], 60)"
+                       :thumbnail="museum.logo.url ? museum.logo.url[primaryLanguageCode] : undefined"></Card>
                 <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center">
                     No museums found.
                 </div>

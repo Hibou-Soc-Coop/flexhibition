@@ -2,12 +2,12 @@
 import { ref, watch, computed, type Ref } from 'vue'
 // import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 // import { byPrefixAndName } from '@awesome.me/kit-d33824e8fe/icons'
-import { type ImageItem } from '@/types/flexhibition'
+import { type ImageData } from '@/types/flexhibition'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog'
 // import TinyMCEDidascalia from './TinyMCEDidascalia.vue'
 
 // ====== Props e constants ======
-const parentImages = defineModel<ImageItem[]>()
+const parentImages = defineModel<ImageData[]>()
 
 const images = computed(() => parentImages.value ?? [])
 
@@ -95,10 +95,12 @@ async function handleFiles(files: File[]) {
             const resizedFile = await resizeImageIfNeeded(file, MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
             const previewUrl = URL.createObjectURL(resizedFile)
             images.value.push({
-                media_id: null,
-                media_file: resizedFile,
+                id: null,
+                file: { 'default': resizedFile },
+                url: {},
+                title: {},
+                to_delete: false,
                 media_preview: previewUrl,
-                media_to_delete: false,
                 media_caption: {}
             })
         } catch (err) {

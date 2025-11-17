@@ -1,84 +1,92 @@
 <script setup lang="ts">
+import Label from '@/components/ui/label/Label.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
-import MediaUploader from '@/components/hibou/MediaUploader.vue';
-import { Head, usePage } from '@inertiajs/vue3';
-import { Museum, type Language } from '@/types/flexhibition';
+import PageLayout from '@/layouts/PageLayout.vue';
+import museumRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
-import Button from '@/components/hibou/Button.vue';
-import GalleryUploader from '@/components/hibou/GalleryUploader.vue';
+import { MuseumData, type Language } from '@/types/flexhibition';
+import { Head, usePage } from '@inertiajs/vue3';
 
-const { museum, contents } = defineProps<{ museum: Museum, contents: Record<string, any> }>();
+const props = defineProps<{ museum: MuseumData }>();
 
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language;
 
-const filteredLanguages = languages.filter(lang =>
-    Object.keys(contents).includes(lang.language_code)
-);
-
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Museo', href: route('museums.index') },
+    { title: 'Museo', href: museumRoutes.index().url },
     { title: 'Dettaglio', href: '#' },
 ];
 </script>
 
 <template>
-
-    <Head :title="contents[primaryLanguage.language_code].museum_name + ' - Dettaglio'" />
+    <Head :title="props.museum.name[primaryLanguage.code] + ' - Dettaglio'" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4 md:p-8 container">
-            <HButton as="a" :href="route('museums.edit', museum.museum_id)" class="mb-8 h-8" colorScheme="edit">
-                <span>Modifica</span>
-            </HButton>
-            <div v-for="language in filteredLanguages" :key="language.language_code"
-                 class="shadow-sm mb-8 p-4 border rounded-md">
-                <h2 class="mb-4 font-semibold text-gray-700 text-xl">{{ language.language_name }}</h2>
-                <div class="flex md:flex-row flex-col gap-6">
-                    <div class="md:w-1/2">
-                        <div class="mb-4">
-                            <span class="block mb-1 font-medium text-gray-600">Logo</span>
-                            <HMediaUploader v-model:model-value="contents[language.language_code].museum_logo"
-                                            accept="image/*"
-                                            isReadonly
-                                            class="mb-4" />
-                        </div>
-                        <div v-if="language.language_code === primaryLanguage.language_code">
-                            <span class="block mb-1 font-medium text-gray-600">Galleria</span>
-                            <GalleryUploader v-if="Array.isArray(contents[language.language_code].museum_gallery) && contents[language.language_code].museum_gallery.length > 0"
-                                             v-model="contents[language.language_code].museum_gallery"
-                                             isReadonly />
-                            <div v-else class="bg-gray-50 p-2 border rounded min-h-[2.5rem] text-gray-800">
-                                Nessuna immagine caricata nella galleria
-                            </div>
-                        </div>
-                        <div v-if="contents[language.language_code].museum_audio">
-                            <span class="block mb-1 font-medium text-gray-600">Audio</span>
-                            <MediaUploader v-model:model-value="contents[language.language_code].museum_audio"
-                                            accept="audio/*"
-                                            isReadonly
-                                            class="mb-4" />
-                        </div>
+        <PageLayout title="Dettaglio Museo">
+            <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
+                <div class="rounded-lg border p-4 shadow">
+                    <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
+                    <div class="overflow-hidden rounded-md border border-gray-300">
+                        <img
+                            v-if="props.museum.logo.url[primaryLanguage.code]"
+                            :src="props.museum.logo.url[primaryLanguage.code]"
+                            :alt="props.museum.logo.title[primaryLanguage.code]"
+                            class="h-full w-full object-cover"
+                        />
+                        <img v-else src="/images/placeholder-image.png" alt="Placeholder" class="h-full w-full object-cover" />
                     </div>
-                    <div class="md:w-1/2">
-                        <div class="mb-4">
-                            <span class="block mb-1 font-medium text-gray-600">Titolo</span>
-                            <div class="bg-gray-50 p-2 border rounded min-h-[2.5rem] text-gray-800">
-                                {{ contents[language.language_code].museum_name || '-' }}
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <span class="block mb-1 font-medium text-gray-600">Descrizione</span>
-                            <div class="bg-gray-50 p-2 border rounded min-h-[4rem] text-gray-800"
-                                 v-html="contents[language.language_code].museum_description || '-'">
-                            </div>
+                </div>
+                <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
+                    <Label class="block text-lg font-semibold"> Audio Museo </Label>
+                    <audio
+                        v-if="props.museum.audio.url[primaryLanguage.code]"
+                        :src="props.museum.audio.url[primaryLanguage.code]"
+                        controls
+                        class="mt-2 w-full"
+                    />
+                    <div v-else class="mt-2 w-full rounded-md border border-gray-300 bg-gray-100">
+                        <p class="p-4 text-sm text-gray-500">Nessun audio disponibile</p>
+                    </div>
+                </div>
+                <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
+                    <h2 class="mb-4 text-lg font-semibold">Informazioni Museo</h2>
+                    <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
+                        <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
+                            <template v-for="language in languages" :key="language.code">
+                                <TabsTrigger
+                                    v-if="props.museum.name[language.code] || props.museum.description[language.code]"
+                                    :value="language.code"
+                                >
+                                    {{ language.name }}
+                                </TabsTrigger>
+                            </template>
+                        </TabsList>
+                        <TabsContent v-for="language in languages" :key="language.code" :value="language.code">
+                            <Label class="mb-4 text-base font-semibold"> Nome Museo - {{ language.name }} </Label>
+                            <p class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input">
+                                {{ props.museum.name[language.code] }}
+                            </p>
+                            <Label class="mb-4 text-base font-semibold"> Descrizione Museo - {{ language.name }} </Label>
+                            <p class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input">
+                                {{ props.museum.description[language.code] }}
+                            </p>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+                <div class="col-span-2 rounded-lg border p-4 shadow">
+                    <Label class="mb-4 text-lg font-semibold"> Immagini del Museo </Label>
+                    <div class="grid grid-cols-4 gap-4">
+                        <div
+                            v-for="(image, index) in Object.values(props.museum.images)"
+                            :key="index"
+                            class="aspect-square w-full overflow-hidden rounded-md border border-gray-300"
+                        >
+                            <img :src="image.url[primaryLanguage.code]" :alt="image.title[primaryLanguage.code]" class="h-full w-full object-cover" />
                         </div>
                     </div>
                 </div>
             </div>
-            <HButton as="a" :href="route('museums.edit', museum.museum_id)" class="h-8" colorScheme="edit">
-                <span>Modifica</span>
-            </HButton>
-        </div>
+        </PageLayout>
     </AppLayout>
 </template>
