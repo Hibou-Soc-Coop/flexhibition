@@ -22,12 +22,17 @@ Route::prefix('backend')->group(function () {
     Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
 });
 
-Route::get('/museum', function () {
-    return Inertia::render('frontend/Museums/Index');
-})->name('museum.index');
-Route::get('/collection', function(){
-    return Inertia::render('frontend/Collections/Index');
-})->name('collection.index');
+Route::prefix('museum')->group(function(){
+    Route::get('/', function () {
+        return Inertia::render('frontend/Museum');
+    })->name('museum.index');
+    Route::get('/collection', function(){
+        return Inertia::render('frontend/Collection');
+    })->name('collection.index');
+    Route::get('/collection/{id}', function($id){
+        return Inertia::render('frontend/Post', ['postId' => $id]);
+    })->name('post');
+});
 
 
 require __DIR__ . '/settings.php';

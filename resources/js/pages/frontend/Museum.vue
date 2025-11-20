@@ -20,19 +20,19 @@ setTimeout(() => {
                 <img src="@storage/assets/logo-trasparente.png" alt="">
             </div>
         </transition>
-        <div class="home h-full bg-[url('@storage/assets/2.jpeg')] bg-cover bg-center ">
+        <div class="w-full h-full bg-[url('@storage/assets/2.jpeg')] bg-cover bg-center ">
             <div class="absolute bottom-8 place-self-center">
-            <Dropdown class="animate-[bounce_2s_infinite] mx-auto" />
+            <Dropdown class="animate-[bounce_2s_infinite]" />
             </div>
         </div>
-        <div v-if="!loading" class="intro h-full bg-white p-4">
+        <div v-if="!loading" class="intro h-[65vh] bg-white py-4">
             <p class="text-lg font-medium text-black">Il Museo conserva la più importante collezione al mondo delle
                 opere di Costantino Nivola tra sculture e dipinti, più di 200 opere acquisite attraverso successive
                 donazioni. La scelta iniziale, compiuta dalla vedova dell’artista Ruth Guggenheim, ha privilegiato
                 l’opera scultorea di Nivola e particolarmente la fase finale del suo percorso, caratterizzata da un
                 ritorno alla statuaria – con la serie delle Madri e delle Vedove – e ai materiali nobili della scultura
                 tradizionale</p>
-            <button  class="bg-black block text-white font-bold mx-auto py-4 px-8 mt-8" @click="router.visit('/collection')">ENTRA</button>
+            <button  class="bg-black block text-white font-bold mx-auto py-4 px-8 mt-8" @click="router.visit('/museum/collection')">ENTRA</button>
         </div>
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-100"
             leave-to-class="opacity-0">
