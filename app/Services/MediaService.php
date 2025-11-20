@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Media;
-use App\Models\Language;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +49,7 @@ class MediaService
                 }
 
                 $path = $this->storeFile($file, $type, $disk, $folder);
-                $urls[$languageCode] = Storage::disk($disk)->url($path);
+                $urls[$languageCode] = '/' . $path;
                 $uploadedPaths[$languageCode] = $path;
             }
 
@@ -139,7 +138,7 @@ class MediaService
 
                         // Carica il nuovo file
                         $path = $this->storeFile($file, $media->type, $disk, $folder);
-                        $currentUrls[$languageCode] = Storage::disk($disk)->url($path);
+                        $currentUrls[$languageCode] = '/' . $path;
                         $newPaths[$languageCode] = $path;
                     }
                 }
@@ -452,25 +451,26 @@ class MediaService
     }
 
     /**
-     * Estrae il path relativo da un URL completo.
+     * Estrae il path relativo da un URL completo o percorso relativo.
      *
-     * @param string $url URL completo
+     * @param string $url URL completo o percorso relativo
      * @param string $disk Nome del disk
      * @return string|null
      */
     protected function getPathFromUrl(string $url, string $disk = 'public'): ?string
     {
-        $diskUrl = Storage::disk($disk)->url('');
-        
-        // Rimuovi l'URL base del disk per ottenere il path relativo
-        if (Str::startsWith($url, $diskUrl)) {
-            return Str::after($url, $diskUrl);
+        // Se è già un percorso relativo (inizia con /), rimuovi il leading slash
+        if (Str::startsWith($url, '/')) {
+            return ltrim($url, '/');
         }
 
-        // Se l'URL non contiene il base URL del disk, prova a estrarre il path
-        // assumendo che sia nel formato /storage/path/to/file
-        if (Str::startsWith($url, '/storage/')) {
-            return Str::after($url, '/storage/');
+        // Gestisci URL completi (retrocompatibilità con vecchi record)
+        // Rimuovi il dominio per ottenere il path relativo
+        if (filter_var($url, FILTER_VALIDATE_URL)) {
+            $path = parse_url($url, PHP_URL_PATH);
+            if ($path && Str::startsWith($path, '/')) {
+                return ltrim($path, '/');
+            }
         }
 
         return null;

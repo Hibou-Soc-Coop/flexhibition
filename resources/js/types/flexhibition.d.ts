@@ -224,10 +224,10 @@ export interface ExhibitionPostInfo {
     readonly museum_point_id?: string;
 }
 
-export interface ImageData extends Record<string, any> {
+export interface MediaData extends Record<string, any> {
     id: number | null;
     file?: Record<string, File>;
-    url?: Record<string, string>;
+    url?: Record<string, string> | null;
     title: Record<string, string>;
     description?: Record<string, string>;
     to_delete?: boolean;

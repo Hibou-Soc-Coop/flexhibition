@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Button from '@/components/hibou/Button.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -6,7 +7,7 @@ import PageLayout from '@/layouts/PageLayout.vue';
 import museumRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
 import { MuseumData, type Language } from '@/types/flexhibition';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps<{ museum: MuseumData }>();
 
@@ -18,12 +19,26 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Museo', href: museumRoutes.index().url },
     { title: 'Dettaglio', href: '#' },
 ];
+
+const deleteMuseum = () => {
+    if (confirm('Sei sicuro di voler eliminare questo museo?')) {
+        router.delete(museumRoutes.destroy.url(props.museum.id));
+    }
+};
 </script>
 
 <template>
     <Head :title="props.museum.name[primaryLanguage.code] + ' - Dettaglio'" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Dettaglio Museo">
+            <template #button>
+                <Button :href="museumRoutes.edit.url(props.museum.id)" color-scheme="edit" class="mr-2">
+                    Modifica Museo
+                </Button>
+                <Button @click="deleteMuseum" color-scheme="delete">
+                    Elimina Museo
+                </Button>
+            </template>
             <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
                 <div class="rounded-lg border p-4 shadow">
                     <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
@@ -76,7 +91,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
                 <div class="col-span-2 rounded-lg border p-4 shadow">
                     <Label class="mb-4 text-lg font-semibold"> Immagini del Museo </Label>
-                    <div class="grid grid-cols-4 gap-4">
+                    <div class="grid grid-cols-5 gap-4">
                         <div
                             v-for="(image, index) in Object.values(props.museum.images)"
                             :key="index"

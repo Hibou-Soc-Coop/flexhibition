@@ -6,41 +6,18 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import museumsRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
-import { type Language, MuseumInfo } from '@/types/flexhibition';
+import { type Language, MediaData } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { ElementTiptap } from 'element-tiptap';
-import {
-  Document,
-  Text,
-  Paragraph,
-  Heading,
-  Bold,
-  Underline,
-  Italic,
-  Strike,
-  BulletList,
-  OrderedList,
-} from 'element-tiptap';
+
+import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
+import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
+import TipTap from '@/components/hibou/TipTap.vue';
+import Button from '@/components/hibou/Button.vue';
 
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-
-const props = defineProps<{ museums: MuseumInfo[]; maxMuseum: string }>();
-
-const extensions = [
-  Document,
-  Text,
-  Paragraph,
-  Heading.configure({ level: 5 }),
-  Bold.configure({ bubble: true }), // render command-button in bubble menu.
-  Underline.configure({ bubble: true, menubar: false }), // render command-button in bubble menu but not in menubar.
-  Italic,
-  Strike,
-  BulletList,
-  OrderedList,
-];
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -53,10 +30,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// Inizializziamo gli oggetti multilingua usando i codici reali (language.code)
+const emptyByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
+
 const form = useForm({
-    name: Object.fromEntries(Object.keys(languages).map((code) => [code, ''])),
-    caption: Object.fromEntries(Object.keys(languages).map((code) => [code, ''])),
-    description: Object.fromEntries(Object.keys(languages).map((code) => [code, ''])),
+    name: { ...emptyByLanguage },
+    caption: { ...emptyByLanguage },
+    description: { ...emptyByLanguage },
+    logo: null as MediaData | null,
+    audio: null as MediaData | null,
+    images: [] as MediaData[],
     processing: false,
 });
 
@@ -75,24 +58,47 @@ function submit() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Aggiungi Museo">
             <form @submit.prevent="submit">
-                <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
-                    <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
-                        <TabsTrigger v-for="[code, label] in Object.entries(languages)" :key="code" :value="code">
-                            {{ label }}
-                        </TabsTrigger>
-                    </TabsList>
-                    <TabsContent class="mt-1" v-for="[code, label] in Object.entries(languages)" :key="code" :value="code">
-                        <Label class="mb-1 font-semibold">Nome</Label>
-                        <Input class="mb-4" v-model="form.name[code]" />
-                        <div v-if="form.errors[`name.${code}`]" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
-                            {{ form.errors[`name.${code}`] }}
+                <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
+                    <div class="rounded-lg border p-4 shadow">
+                        <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
+                        <div class="overflow-hidden rounded-md">
+                            <SingleMediaUpload v-model="form.logo" :is-readonly="false" :accept="'image/*'" :max-file-size="5 * 1024 * 1024" />
                         </div>
-                        <Label class="mb-1 font-semibold">Descrizione {{ label }}</Label>
-                        <div class="mb-4">
-                            <ElementTiptap v-model="form.description[code]" :options="{ placeholder: 'Scrivi la descrizione qui...' }" />
-                        </div>
-                    </TabsContent>
-                </Tabs>
+                    </div>
+                    <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
+                        <Label class="block text-lg font-semibold"> Audio Museo </Label>
+                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                    </div>
+                    <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
+                        <h2 class="mb-4 text-lg font-semibold">Informazioni Museo</h2>
+                        <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
+                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
+                                <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code">
+                                    {{ language.name }}
+                                </TabsTrigger>
+                            </TabsList>
+                            <TabsContent class="mt-1" v-for="language in languages" :key="language.code" :value="language.code">
+                                <Label class="mb-1 font-semibold">Nome</Label>
+                                <Input class="mb-4" v-model="form.name[language.code]" />
+                                <div v-if="form.errors[`name.${language.code}`]" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
+                                    {{ form.errors[`name.${language.code}`] }}
+                                </div>
+                                <Label class="mb-1 font-semibold">Descrizione {{ language.name }}</Label>
+                                <div class="mb-4">
+                                    <TipTap v-model="form.description[language.code]" />
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                    <div class="col-span-2 rounded-lg border p-4 shadow">
+                        <Label class="mb-4 text-lg font-semibold"> Immagini del Museo </Label>
+                        <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false" :primary="true" />
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <Button type="submit" :disabled="form.processing">Crea Museo</Button>
+                </div>
             </form>
         </PageLayout>
     </AppLayout>

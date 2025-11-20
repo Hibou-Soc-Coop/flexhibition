@@ -45,14 +45,34 @@ class StoreMuseumRequest extends FormRequest
         }
 
         $validationRules['description.*'] = ['nullable', 'string', 'max:2000'];
+
+        $validationRules['logo'] = ['nullable', 'array'];
         $validationRules['logo.id'] = ['nullable', 'integer', 'exists:media,id'];
         $validationRules['logo.file.*'] = ['nullable', 'image', "mimes:{$imageMimes}", "max:{$imageMaxSize}", "dimensions:max_width={$logoWidth},max_height={$logoHeight}"];
+        $validationRules['logo.title'] = ['nullable', 'array'];
+        $validationRules['logo.title.*'] = ['nullable', 'string', 'max:100'];
+        $validationRules['logo.description'] = ['nullable', 'array'];
+        $validationRules['logo.description.*'] = ['nullable', 'string', 'max:2000'];
+        $validationRules['logo.to_delete'] = ['nullable', 'boolean'];
+
+        $validationRules['audio'] = ['nullable', 'array'];
         $validationRules['audio.id'] = ['nullable', 'integer', 'exists:media,id'];
         $validationRules['audio.file.*'] = ['nullable', 'file', "mimes:{$audioMimes}", "max:{$audioMaxSize}"];
+        $validationRules['audio.title'] = ['nullable', 'array'];
+        $validationRules['audio.title.*'] = ['nullable', 'string', 'max:100'];
+        $validationRules['audio.description'] = ['nullable', 'array'];
+        $validationRules['audio.description.*'] = ['nullable', 'string', 'max:2000'];
+        $validationRules['audio.to_delete'] = ['nullable', 'boolean'];
+
         $validationRules['images'] = ['nullable', 'array'];
         $validationRules['images.*.id'] = ['nullable', 'integer', 'exists:media,id'];
         $validationRules['images.*.file'] = ['nullable', 'array'];
         $validationRules['images.*.file.*'] = ['nullable', 'image', "mimes:{$imageMimes}", "max:{$imageMaxSize}", "dimensions:max_width={$galleryWidth},max_height={$galleryHeight}"];
+        $validationRules['images.*.title'] = ['nullable', 'array'];
+        $validationRules['images.*.title.*'] = ['nullable', 'string', 'max:100'];
+        $validationRules['images.*.description'] = ['nullable', 'array'];
+        $validationRules['images.*.description.*'] = ['nullable', 'string', 'max:2000'];
+        $validationRules['images.*.to_delete'] = ['nullable', 'boolean'];
 
         return $validationRules;
     }

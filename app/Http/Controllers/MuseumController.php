@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Facades\Settings;
 use App\Models\Museum;
 use App\Models\MuseumImage;
-use App\Models\Content;
-use App\Models\Media;
-use App\Models\Language;
 use App\Helpers\LanguageHelper;
 use App\Http\Requests\StoreMuseumRequest;
 use App\Http\Requests\UpdateMuseumRequest;
+use App\Services\MediaService;
 use Inertia\Inertia;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Exceptions\PostTooLargeException;
+
 
 
 class MuseumController extends Controller
 {
+    public function __construct(
+        protected MediaService $mediaService
+    ) {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -83,9 +82,61 @@ class MuseumController extends Controller
      */
     public function store(StoreMuseumRequest $request)
     {
+        // dd($request);
         $data = $request->validated();
-        dd($data);
-        //$museum = Museum::create($data);
+
+        $museumName = $data['name'];
+
+        $museumLogo = null;
+        $museumDescription = $data['description'];
+        if (isset($data['logo']) && !empty($data['logo'])) {
+            $museumLogo = $this->mediaService->createMedia(
+                'image',
+                $data['logo']['file'],
+                $data['logo']['title'],
+                $data['logo']['description'] ?? null,
+                'public',
+                'media'
+            );
+        }
+
+        $museumAudio = null;
+        if (isset($data['audio']) && !empty($data['audio'])) {
+            $museumAudio = $this->mediaService->createMedia(
+                'audio',
+                $data['audio']['file'],
+                $data['audio']['title'],
+                $data['audio']['description'] ?? null,
+                'public',
+                'media'
+            );
+        }
+
+        $museumImages = null;
+        if (isset($data['images']) && !empty($data['images'])) {
+            $museumImages = collect($data['images'])->map(function ($image) {
+                return $this->mediaService->createMedia(
+                    'image',
+                    $image['file'],
+                    $image['title'],
+                    $image['description'] ?? null,
+                    'public',
+                    'media'
+                );
+            });
+        }
+
+
+        $museum = Museum::create([
+            'name' => $museumName,
+            'description' => $museumDescription,
+            'logo_id' => $museumLogo?->id,
+            'audio_id' => $museumAudio?->id,
+        ]);
+
+        if ($museumImages && $museumImages->isNotEmpty()) {
+            $museum->images()->attach($museumImages->pluck('id')->toArray());
+        }
 
         //return redirect()->route('museums.index')->with('success', 'Museo creato con successo.');
     }
@@ -97,6 +148,7 @@ class MuseumController extends Controller
     {
         $museumRecord = Museum::findOrFail($id);
 
+        $museumId = $museumRecord->id;
         $museumName = $museumRecord->getTranslations('name');
         $museumDescription = $museumRecord->getTranslations('description');
         $museumLogo = $museumRecord->logo;
@@ -104,6 +156,7 @@ class MuseumController extends Controller
         $museumImages = $museumRecord->images;
 
         $museumData = [
+            'id' => $museumId,
             'name' => $museumName,
             'description' => $museumDescription,
             'logo' => $museumLogo,
@@ -138,6 +191,27 @@ class MuseumController extends Controller
      */
     public function destroy(string $id)
     {
+        $museum = Museum::findOrFail($id);
 
+        // Elimina il logo
+        if ($museum->logo_id) {
+            $this->mediaService->deleteMedia($museum->logo_id);
+        }
+
+        // Elimina l'audio
+        if ($museum->audio_id) {
+            $this->mediaService->deleteMedia($museum->audio_id);
+        }
+
+        // Elimina tutte le immagini collegate
+        $imageIds = $museum->images()->pluck('id')->toArray();
+        foreach ($imageIds as $imageId) {
+            $this->mediaService->deleteMedia($imageId);
+        }
+
+        // Elimina il museo
+        $museum->delete();
+
+        return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
     }
 }

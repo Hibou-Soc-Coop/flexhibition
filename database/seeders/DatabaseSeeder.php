@@ -16,13 +16,14 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'AdminOwl',
+            'email' => 'digital@hiboucoop.org',
+            'password' => bcrypt('gatti-compreso-leoni'),
         ]);
 
         $this->call([
             LanguageSeeder::class,
-            MediaSeeder::class,
+            //MediaSeeder::class,
         ]);
     }
 }
