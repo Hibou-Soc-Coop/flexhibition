@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import Button from "@/components/ui/button/Button.vue";
-import Dropdown from '@storage/assets/drop-down.svg';
+import LanguageMenu from '@/components/LanguageMenu.vue';
 import HMenu from '@/components/HMenu.vue';
 import { router } from '@inertiajs/vue3';
 
@@ -8,12 +7,8 @@ import { router } from '@inertiajs/vue3';
 </script>
 <template>
     <div class="h-screen grid grid-rows-[15%_85%]">
-        <div class="flex flex-col justify-center items-center bg-white border-b p-4 gap-4">
-            <Button class="rounded-full w-20 h-8 text-xl " variant="outline">ITA
-                <span>
-                    <Dropdown class="inline-block mb-1" />
-                </span>
-            </Button>
+        <div class="flex flex-col justify-center items-center bg-white">
+             <LanguageMenu />
             <h1 class="text-3xl font-bold">COLLEZIONE</h1>
         </div>
         <div class="p-8 bg-[#eccdc3] h-full overflow-y-scroll">

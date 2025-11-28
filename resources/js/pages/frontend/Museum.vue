@@ -17,7 +17,7 @@ setTimeout(() => {
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-0"
             leave-to-class="opacity-100">
             <div v-if="!loading" class="absolute inset-0 flex justify-center items-center ">
-                <img src="@storage/assets/logo-trasparente.png" alt="">
+                <img src="@storage/assets/logo-trasparente.png" alt="" class="w-[187px] h-[454px]">
             </div>
         </transition>
         <div class="w-full h-full bg-[url('@storage/assets/2.jpeg')] bg-cover bg-center ">
