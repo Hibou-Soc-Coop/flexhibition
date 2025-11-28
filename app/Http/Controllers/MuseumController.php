@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
 use App\Models\Museum;
-use App\Models\MuseumImage;
 use App\Helpers\LanguageHelper;
 use App\Http\Requests\StoreMuseumRequest;
 use App\Http\Requests\UpdateMuseumRequest;
 use App\Services\MediaService;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
-
 
 class MuseumController extends Controller
 {
@@ -82,63 +81,54 @@ class MuseumController extends Controller
      */
     public function store(StoreMuseumRequest $request)
     {
-        // dd($request);
         $data = $request->validated();
 
-        $museumName = $data['name'];
+        DB::beginTransaction();
 
-        $museumLogo = null;
-        $museumDescription = $data['description'];
-        if (isset($data['logo']) && !empty($data['logo'])) {
-            $museumLogo = $this->mediaService->createMedia(
-                'image',
-                $data['logo']['file'],
-                $data['logo']['title'],
-                $data['logo']['description'] ?? null,
-                'public',
-                'media'
-            );
+        try {
+            // Crea i media
+            $logoId = isset($data['logo']['file'])
+                ? $this->createMediaFromData($data['logo'], 'image')?->id
+                : null;
+
+            $audioId = isset($data['audio']['file'])
+                ? $this->createMediaFromData($data['audio'], 'audio')?->id
+                : null;
+
+            // Crea il museo
+            $museum = Museum::create([
+                'name' => $data['name'],
+                'description' => $data['description'],
+                'logo_id' => $logoId,
+                'audio_id' => $audioId,
+            ]);
+
+            // Associa le immagini
+            if (isset($data['images']) && !empty($data['images'])) {
+                $imageIds = collect($data['images'])
+                    ->map(function($img) {
+                        return $this->createMediaFromData($img, 'image');
+                    })
+                    ->pluck('id')
+                    ->toArray();
+
+                $museum->images()->attach($imageIds);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('museums.index')
+                ->with('success', 'Museo creato con successo.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante la creazione del museo: ' . $e->getMessage());
         }
-
-        $museumAudio = null;
-        if (isset($data['audio']) && !empty($data['audio'])) {
-            $museumAudio = $this->mediaService->createMedia(
-                'audio',
-                $data['audio']['file'],
-                $data['audio']['title'],
-                $data['audio']['description'] ?? null,
-                'public',
-                'media'
-            );
-        }
-
-        $museumImages = null;
-        if (isset($data['images']) && !empty($data['images'])) {
-            $museumImages = collect($data['images'])->map(function ($image) {
-                return $this->mediaService->createMedia(
-                    'image',
-                    $image['file'],
-                    $image['title'],
-                    $image['description'] ?? null,
-                    'public',
-                    'media'
-                );
-            });
-        }
-
-
-        $museum = Museum::create([
-            'name' => $museumName,
-            'description' => $museumDescription,
-            'logo_id' => $museumLogo?->id,
-            'audio_id' => $museumAudio?->id,
-        ]);
-
-        if ($museumImages && $museumImages->isNotEmpty()) {
-            $museum->images()->attach($museumImages->pluck('id')->toArray());
-        }
-
-        //return redirect()->route('museums.index')->with('success', 'Museo creato con successo.');
     }
 
     /**
@@ -192,10 +182,9 @@ class MuseumController extends Controller
             'images' => $museumImages,
         ];
 
-        return Inertia::render('backend/Museums/Edit', [
+        return Inertia::render('backend/Museums/Show', [
             'museum' => $museumData,
         ]);
-
     }
 
     /**
@@ -203,7 +192,57 @@ class MuseumController extends Controller
      */
     public function update(UpdateMuseumRequest $request, string $id)
     {
+        $data = $request->validated();
+        $museum = Museum::findOrFail($id);
 
+        DB::beginTransaction();
+
+        try {
+            // Aggiorna i dati base del museo
+            $museum->update([
+                'name' => $data['name'] ?? $museum->name,
+                'description' => $data['description'] ?? $museum->description,
+            ]);
+
+            // Gestione Logo
+            $logoId = $this->handleMediaUpdate(
+                $data['logo'] ?? null,
+                $museum->logo_id,
+                'image'
+            );
+            if ($logoId !== $museum->logo_id) {
+                $museum->update(['logo_id' => $logoId]);
+            }
+
+            // Gestione Audio
+            $audioId = $this->handleMediaUpdate(
+                $data['audio'] ?? null,
+                $museum->audio_id,
+                'audio'
+            );
+            if ($audioId !== $museum->audio_id) {
+                $museum->update(['audio_id' => $audioId]);
+            }
+
+            // Gestione Immagini Gallery
+            if (isset($data['images'])) {
+                $this->handleGalleryUpdate($museum, $data['images']);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('museums.index')
+                ->with('success', 'Museo aggiornato con successo.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Errore durante l\'aggiornamento del museo: ' . $e->getMessage());
+        }
     }
 
 
@@ -234,5 +273,130 @@ class MuseumController extends Controller
         $museum->delete();
 
         return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
+    }
+
+    private function createMediaFromData(array $data, string $type): ?Media
+    {
+        if (empty($data['file'])) {
+            return null;
+        }
+
+        return $this->mediaService->createMedia(
+            $type,
+            $data['file'],
+            $data['title'],
+            $data['description'] ?? null,
+            'public',
+            'media'
+        );
+    }
+
+    /**
+     * Gestisce l'aggiornamento di un media (logo o audio).
+     *
+     * @param array|null $data Dati del media dal request
+     * @param int|null $currentMediaId ID del media corrente
+     * @param string $type Tipo di media ('image' o 'audio')
+     * @return int|null ID del media aggiornato o null
+     */
+    private function handleMediaUpdate(?array $data, ?int $currentMediaId, string $type): ?int
+    {
+        if (!$data) {
+            return $currentMediaId;
+        }
+
+        // Se è richiesta la cancellazione
+        if (!empty($data['to_delete']) && $currentMediaId) {
+            $this->mediaService->deleteMedia($currentMediaId);
+            return null;
+        }
+
+        // Se c'è un nuovo file da caricare
+        if (!empty($data['file'])) {
+            // Se esiste già un media, aggiornalo
+            if ($currentMediaId && !empty($data['id']) && $data['id'] == $currentMediaId) {
+                $this->mediaService->updateMedia(
+                    $currentMediaId,
+                    $data['file'],
+                    $data['title'] ?? null,
+                    $data['description'] ?? null,
+                    'public',
+                    'media'
+                );
+                return $currentMediaId;
+            } else {
+                // Crea un nuovo media e elimina il vecchio se esiste
+                if ($currentMediaId) {
+                    $this->mediaService->deleteMedia($currentMediaId);
+                }
+                $newMedia = $this->createMediaFromData($data, $type);
+                return $newMedia?->id;
+            }
+        }
+
+        // Se ci sono solo aggiornamenti di titolo/descrizione senza nuovo file
+        if ($currentMediaId && (isset($data['title']) || isset($data['description']))) {
+            $this->mediaService->updateMedia(
+                $currentMediaId,
+                null,
+                $data['title'] ?? null,
+                $data['description'] ?? null,
+                'public',
+                'media'
+            );
+        }
+
+        return $currentMediaId;
+    }
+
+    /**
+     * Gestisce l'aggiornamento delle immagini della gallery.
+     *
+     * @param Museum $museum Istanza del museo
+     * @param array $imagesData Dati delle immagini dal request
+     */
+    private function handleGalleryUpdate(Museum $museum, array $imagesData): void
+    {
+        $currentImageIds = $museum->images()->pluck('media.id')->toArray();
+        $updatedImageIds = [];
+
+        foreach ($imagesData as $imageData) {
+            // Se l'immagine deve essere eliminata
+            if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
+                $this->mediaService->deleteMedia($imageData['id']);
+                continue;
+            }
+
+            // Se c'è un ID esistente
+            if (!empty($imageData['id'])) {
+                // Aggiorna se c'è un nuovo file o metadati
+                if (!empty($imageData['file']) || isset($imageData['title']) || isset($imageData['description'])) {
+                    $this->mediaService->updateMedia(
+                        $imageData['id'],
+                        $imageData['file'] ?? null,
+                        $imageData['title'] ?? null,
+                        $imageData['description'] ?? null,
+                        'public',
+                        'media'
+                    );
+                }
+                $updatedImageIds[] = $imageData['id'];
+            } elseif (!empty($imageData['file'])) {
+                // Crea una nuova immagine
+                $newImage = $this->createMediaFromData($imageData, 'image');
+                if ($newImage) {
+                    $updatedImageIds[] = $newImage->id;
+                }
+            }
+        }
+
+        // Sincronizza le immagini (rimuove quelle non più presenti)
+        $museum->images()->sync($updatedImageIds);
+
+        // Elimina i media che non sono più associati
+        $imagesToDelete = array_diff($currentImageIds, $updatedImageIds);
+        foreach ($imagesToDelete as $imageId) {
+            $this->mediaService->deleteMedia($imageId);
+        }
     }
 }
