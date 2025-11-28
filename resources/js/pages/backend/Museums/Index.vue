@@ -12,8 +12,8 @@ import museumsRoutes from '@/routes/museums';
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
-const primaryLanguageCode = primaryLanguage?.code || 'it';
 
+const primaryLanguageCode = primaryLanguage?.code || 'it';
 const props = defineProps<{ museums: MuseumData[], maxMuseum: Number }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,6 +44,7 @@ function truncate(text: string | undefined, maxLength: number): string {
             <div class="gap-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 <Card
                        v-for="museum in props.museums"
+                        :key="museum.id"
                        :route="museumsRoutes"
                        :id="museum.id"
                        :title="museum.name[primaryLanguageCode]"

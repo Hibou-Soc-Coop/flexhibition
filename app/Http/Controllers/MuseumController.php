@@ -182,7 +182,7 @@ class MuseumController extends Controller
             'images' => $museumImages,
         ];
 
-        return Inertia::render('backend/Museums/Show', [
+        return Inertia::render('backend/Museums/Edit', [
             'museum' => $museumData,
         ]);
     }
