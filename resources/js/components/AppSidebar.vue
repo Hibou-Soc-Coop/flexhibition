@@ -7,9 +7,10 @@ import { dashboard } from '@/routes';
 import languagesRoutes from '@/routes/languages';
 import mediaRoutes from '@/routes/media';
 import museumsRoutes from '@/routes/museums';
+import exhibitionsRoutes from '@/routes/exhibitions';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Folder, Landmark, LayoutGrid } from 'lucide-vue-next';
+import { Folder, Landmark, Eye, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -22,6 +23,11 @@ const mainNavItems: NavItem[] = [
         title: 'Musei',
         href: museumsRoutes.index(),
         icon: Landmark,
+    },
+    {
+        title: 'Collezioni',
+        href: exhibitionsRoutes.index(),
+        icon: Eye,
     },
 ];
 

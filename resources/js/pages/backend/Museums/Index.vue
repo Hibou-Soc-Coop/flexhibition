@@ -12,9 +12,9 @@ import museumsRoutes from '@/routes/museums';
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
-
 const primaryLanguageCode = primaryLanguage?.code || 'it';
 const props = defineProps<{ museums: MuseumData[], maxMuseum: Number }>();
+console.log('Museums Props: ', props.museums);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

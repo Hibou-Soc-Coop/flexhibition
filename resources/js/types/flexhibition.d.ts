@@ -93,54 +93,38 @@ export interface MuseumUploadData extends MuseumData {
 }
 
 /** Mostra (dati base, riferimenti a media) */
-export interface Exhibition {
-    readonly museum_id: string | number;
-    readonly exhibition_id: string | number;
-    readonly exhibition_name_id: number;
-    readonly exhibition_description_id?: number;
-    readonly exhibition_credits_id?: number;
-    readonly exhibition_image_id?: number;
-    readonly exhibition_audio_id?: number;
-    readonly exhibition_start_date?: string;
-    readonly exhibition_end_date?: string;
-    readonly museum_point_id?: number;
-    readonly exhibition_is_archived: boolean;
+export interface ExhibitionRecord {
+    readonly id: number;
+    readonly name: string;
+    readonly description?: string;
+    readonly image_id?: number[];
+    readonly audio_id?: number;
+    readonly start_date?: string;
+    readonly end_date?: string;
+    readonly is_archived: boolean;
+    readonly museum_id: number;
 }
 
 /** Informazioni multilingua su una mostra */
-export interface ExhibitionInfo {
-    readonly museum_id: string;
-    readonly museum_name: string;
-    readonly exhibition_id: number;
-    readonly exhibition_is_archived: boolean;
-    readonly exhibition_contents: Record<
-        string,
-        {
-            name: string;
-            description?: string;
-            credits?: string;
-        }
-    >;
-    readonly exhibition_images: Record<
-        string,
-        {
-            media_url: string;
-            media_title: string;
-            media_description?: string;
-        }
-    >;
-    readonly exhibition_audio: Record<
-        string,
-        {
-            media_url: string;
-            media_title: string;
-            media_description?: string;
-        }
-    >;
-    readonly exhibition_start_date?: string;
-    readonly exhibition_end_date?: string;
-    readonly museum_point_id?: number;
-    readonly museum_point_data?: MuseumPoint;
+export interface ExhibitionData {
+    readonly id: number;
+    readonly name: Record<string, string>;
+    readonly description?: Record<string, string>;
+    readonly image: {
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    }[];
+    readonly audio: {
+        url: Record<string, string>;
+        title: Record<string, string>;
+        description?: Record<string, string>;
+    };
+    readonly start_date?: string;
+    readonly end_date?: string;
+    readonly is_archived: boolean;
+    readonly museum_id: number;
+    readonly museum_name: Record<string, string>;
 }
 
 /** Punto (dati base, riferimenti a media) */
