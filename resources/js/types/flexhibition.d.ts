@@ -110,11 +110,11 @@ export interface ExhibitionData {
     readonly id: number;
     readonly name: Record<string, string>;
     readonly description?: Record<string, string>;
-    readonly image: {
+    readonly images: Record <string,{
         url: Record<string, string>;
         title: Record<string, string>;
         description?: Record<string, string>;
-    }[];
+    }>;
     readonly audio: {
         url: Record<string, string>;
         title: Record<string, string>;
@@ -124,7 +124,7 @@ export interface ExhibitionData {
     readonly end_date?: string;
     readonly is_archived: boolean;
     readonly museum_id: number;
-    readonly museum_name: Record<string, string>;
+    readonly museum_name?: Record<string, string>;
 }
 
 /** Punto (dati base, riferimenti a media) */

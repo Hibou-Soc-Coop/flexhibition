@@ -4,59 +4,48 @@ import Label from '@/components/ui/label/Label.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
-import museumRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
-import { MuseumData, type Language } from '@/types/flexhibition';
+import { ExhibitionData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import museumsRoutes from '@/routes/museums';
+import exhibitionsRoutes from '@/routes/exhibitions';
 
-const props = defineProps<{ museum: MuseumData }>();
-console.log("Museum Props:", props.museum);
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language;
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Museo', href: museumRoutes.index().url },
+    { title: 'Mostra', href: exhibitionsRoutes.index().url },
     { title: 'Dettaglio', href: '#' },
 ];
 
-const deleteMuseum = () => {
-    if (confirm('Sei sicuro di voler eliminare questo museo?')) {
-        router.delete(museumRoutes.destroy.url(props.museum.id));
+const props = defineProps<{ exhibition: ExhibitionData }>();
+
+console.log("Exhibition Props:", props.exhibition);
+
+const deleteExhibition = () => {
+    if (confirm('Sei sicuro di voler eliminare questa mostra?')) {
+        router.delete(exhibitionsRoutes.destroy.url(props.exhibition.id));
     }
 };
 </script>
 
 <template>
-    <Head :title="props.museum.name[primaryLanguage.code] + ' - Dettaglio'" />
+    <Head :title="props.exhibition.name[primaryLanguage.code] + ' - Dettaglio'" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <PageLayout title="Dettaglio Museo">
+        <PageLayout title="Dettaglio Mostra">
             <template #button>
-                <Button @click="router.visit(museumsRoutes.edit.url(props.museum.id))" color-scheme="edit" class="mr-2">
-                    Modifica Museo
+                <Button @click="router.visit(exhibitionsRoutes.edit.url(props.exhibition.id))" color-scheme="edit" class="mr-2">
+                    Modifica Mostra
                 </Button>
-                <Button @click="deleteMuseum" color-scheme="delete">
-                    Elimina Museo
+                <Button @click="deleteExhibition" color-scheme="delete">
+                    Elimina Mostra
                 </Button>
             </template>
             <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
-                <div class="rounded-lg border p-4 shadow">
-                    <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
-                    <div class="overflow-hidden rounded-md border border-gray-300">
-                        <img
-                            v-if="props.museum.logo.url[primaryLanguage.code]"
-                            :src="`/storage/${props.museum.logo.url[primaryLanguage.code]}`"
-                            :alt="props.museum.logo.title[primaryLanguage.code]"
-                            class="h-full w-full object-cover"
-                        />
-                        <img v-else src="/images/placeholder-image.png" alt="Placeholder" class="h-full w-full object-cover" />
-                    </div>
-                </div>
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
-                    <Label class="block text-lg font-semibold"> Audio Museo </Label>
+                    <Label class="block text-lg font-semibold"> Audio Mostra </Label>
                     <audio
-                        v-if="props.museum.audio.url[primaryLanguage.code]"
-                        :src="`/storage/${props.museum.audio.url[primaryLanguage.code]}`"
+                        v-if="props.exhibition.audio.url[primaryLanguage.code]"
+                        :src="`/storage/${props.exhibition.audio.url[primaryLanguage.code]}`"
                         controls
                         class="mt-2 w-full"
                     />
@@ -65,12 +54,12 @@ const deleteMuseum = () => {
                     </div>
                 </div>
                 <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
-                    <h2 class="mb-4 text-lg font-semibold">Informazioni Museo</h2>
+                    <h2 class="mb-4 text-lg font-semibold">Informazioni Mostra</h2>
                     <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
                         <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
                             <template v-for="language in languages" :key="language.code">
                                 <TabsTrigger
-                                    v-if="props.museum.name[language.code] || props.museum.description[language.code]"
+                                    v-if="props.exhibition.name[language.code]"
                                     :value="language.code"
                                 >
                                     {{ language.name }}
@@ -78,22 +67,26 @@ const deleteMuseum = () => {
                             </template>
                         </TabsList>
                         <TabsContent v-for="language in languages" :key="language.code" :value="language.code">
-                            <Label class="mb-4 text-base font-semibold"> Nome Museo - {{ language.name }} </Label>
+                            <Label class="mb-4 text-base font-semibold"> Nome Mostra - {{ language.name }} </Label>
                             <p class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input">
-                                {{ props.museum.name[language.code] }}
+                                {{ props.exhibition.name[language.code] }}
                             </p>
-                            <Label class="mb-4 text-base font-semibold"> Descrizione Museo - {{ language.name }} </Label>
-                            <p class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input">
-                                {{ props.museum.description[language.code] }}
-                            </p>
+                            <Label class="mb-4 text-base font-semibold"> Descrizione Mostra - {{ language.name }} </Label>
+                            <div class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input"
+                                v-html="props.exhibition.description?.[language.code] || '-'">
+                            </div>
+                            <Label class="mb-4 text-base font-semibold"> Museo - {{ language.name }} </Label>
+                            <div class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input"
+                                v-html="props.exhibition.museum_name?.[language.code] || '-'">
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </div>
                 <div class="col-span-2 rounded-lg border p-4 shadow">
-                    <Label class="mb-4 text-lg font-semibold"> Immagini del Museo</Label>
+                    <Label class="mb-4 text-lg font-semibold"> Immagini del Mostra</Label>
                     <div class="grid grid-cols-5 gap-4">
                         <div
-                            v-for="(image, index) in Object.values(props.museum.images)"
+                            v-for="(image, index) in Object.values(props.exhibition.images)"
                             :key="index"
                             class="aspect-square w-full overflow-hidden rounded-md border border-gray-300"
                         >

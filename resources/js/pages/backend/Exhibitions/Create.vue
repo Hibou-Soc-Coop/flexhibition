@@ -19,7 +19,9 @@ const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-const museums = defineProps<{ museums: MuseumData }>();
+
+const props = defineProps<{ museums: MuseumData[] }>();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Exhibitions',
@@ -38,8 +40,8 @@ const form = useForm({
     name: { ...emptyByLanguage },
     caption: { ...emptyByLanguage },
     description: { ...emptyByLanguage },
-    startDate: '',
-    endDate: '',
+    start_date: '',
+    end_date: '',
     audio: null as MediaData | null,
     images: [] as MediaData[],
     museum_id: null as number | null,
@@ -68,9 +70,9 @@ function submit() {
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Data d'inizio </Label>
-                        <Input class="mb-4" v-model="form.startDate" type="date" />
+                        <Input class="mb-4" v-model="form.start_date" type="date" />
                         <Label class="block text-lg font-semibold"> Data di fine </Label>
-                        <Input class="mb-4" v-model="form.endDate" type="date" />
+                        <Input class="mb-4" v-model="form.end_date" type="date" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
                         <h2 class="mb-4 text-lg font-semibold">Informazioni Collezione</h2>
@@ -96,7 +98,7 @@ function submit() {
                                             <SelectValue placeholder="Seleziona museo" />
                                         </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="museum in museums" :key="museum.id" :value="museum.id">{{ museum.name[language.code] }}</SelectItem>
+                                        <SelectItem v-for="museum in props.museums" :key="museum.id" :value="museum.id">{{ museum.name[language.code] }}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </TabsContent>

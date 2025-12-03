@@ -37,15 +37,13 @@ class UpdateExhibitionRequest extends FormRequest
         // Name validation (required for primary language)
         foreach ($languages as $language) {
             if ($language->code === $primaryLanguage->code) {
-                $validationRules['name.' . $language->code] = ['required', 'string', 'max:100'];
+                $validationRules['name.' . $language->code] = ['nullable', 'string', 'max:100'];
             } else {
                 $validationRules['name.' . $language->code] = ['nullable', 'string', 'max:100'];
             }
         }
 
-        // Description and credits validation (optional for all languages)
         $validationRules['description.*'] = ['nullable', 'string', 'max:10000'];
-        $validationRules['credits.*'] = ['nullable', 'string', 'max:2000'];
 
         // Museum association
         $validationRules['museum_id'] = ['nullable', 'integer', 'exists:museums,id'];
@@ -101,8 +99,6 @@ class UpdateExhibitionRequest extends FormRequest
             $messages["name.{$lang}.max"] = "Il nome della collezione in {$langName} non può superare 100 caratteri.";
             $messages["description.{$lang}.string"] = "La descrizione della collezione in {$langName} deve essere una stringa.";
             $messages["description.{$lang}.max"] = "La descrizione della collezione in {$langName} non può superare 10000 caratteri.";
-            $messages["credits.{$lang}.string"] = "I crediti della collezione in {$langName} devono essere una stringa.";
-            $messages["credits.{$lang}.max"] = "I crediti della collezione in {$langName} non possono superare 2000 caratteri.";
             $messages["audio.file.{$lang}"] = "Il file audio deve essere un file mp3 valido e non superare {$audioMaxSize}KB.";
             $messages["images.*.file.{$lang}.image"] = "Il file della galleria in {$langName} deve essere un'immagine.";
             $messages["images.*.file.{$lang}.max"] = "Il file della galleria in {$langName} non deve superare {$imageMaxSize} kilobyte.";
