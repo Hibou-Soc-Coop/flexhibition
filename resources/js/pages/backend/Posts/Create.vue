@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import postsRoutes from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
-import { type Language, MediaData, exhibitionData } from '@/types/flexhibition';
+import { type Language, MediaData, ExhibitionData } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 
 import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
@@ -20,7 +20,7 @@ const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
 
-const props = defineProps<{ exhibitions: exhibitionData[] }>();
+const props = defineProps<{ exhibitions: ExhibitionData[] }>();
 console.log("exhibitions:", props.exhibitions);
 
 const breadcrumbs: BreadcrumbItem[] = [

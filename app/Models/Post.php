@@ -84,8 +84,8 @@ class Post extends Model
     /**
      * Get all exhibitions that include this post.
      */
-    public function exhibitions(): BelongsToMany
-    {
-        return $this->belongsToMany(Exhibition::class, 'exhibition_posts');
-    }
+    // public function exhibitions(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(Exhibition::class, 'exhibition_posts');
+    // }
 }

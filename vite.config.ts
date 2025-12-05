@@ -35,6 +35,7 @@ export default defineConfig({
         alias: {
             '@': path.resolve(__dirname, 'resources/js'),
             '@storage': path.resolve(__dirname, 'storage/app/public/'),
+            '@routes': path.resolve(__dirname, 'resources/js/routes'),
         },
     },
 });
