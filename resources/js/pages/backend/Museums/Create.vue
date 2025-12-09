@@ -13,11 +13,13 @@ import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue'
 import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
 import TipTap from '@/components/hibou/TipTap.vue';
 import Button from '@/components/hibou/Button.vue';
+import { ref } from 'vue';
 
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
+const currentLang = ref<string>(primaryLanguageCode);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -67,11 +69,11 @@ function submit() {
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Audio Museo </Label>
-                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                        <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
                         <h2 class="mb-4 text-lg font-semibold">Informazioni Museo</h2>
-                        <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
+                        <Tabs v-model="currentLang" default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
                             <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
                                 <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code">
                                     {{ language.name }}
