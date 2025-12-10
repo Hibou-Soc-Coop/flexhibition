@@ -5,12 +5,19 @@ import LanguageMenu from '@/components/LanguageMenu.vue';
 import HMenu from '@/components/HMenu.vue';
 import Close from '@storage/assets/chiudi.svg';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { PostData } from '@/types/flexhibition';
 import AudioPlayer from "@/components/ui/audio-player/AudioPlayer.vue";
+import { useI18n } from 'vue-i18n';
 
-
-
+const props = defineProps<{
+    post : PostData[];
+}>();
+console.log("Post prop in Post.vue:", props.post.audio);
 const read = ref(false);
 const listen = ref(false)
+
+const { t, locale } = useI18n();
+
 
 function openRead() {
     listen.value = false;
@@ -36,7 +43,7 @@ function closeListen() {
             class="w-[90%] h-full grid grid-rows-[60%_15%_25%] grid-cols-2 *:border *:border-black justify-center mx-auto mt-2">
             <img src="@storage/assets/collections/1.png" alt=""
                 class="w-full h-full object-cover cover bg-[#dfdfdf] col-span-2">
-            <p class="text-xl font-bold col-span-2 text-center pt-2 overflow-scroll">Vedova, da modello del 1984, bronzo, cm 61 x 52,7 x 6. Foto P. Pinna. </p>
+            <div class="text-xl font-bold col-span-2 text-center pt-2 overflow-scroll" v-html="post.description[locale]"></div>
             <div class="grid justify-center items-center">
                 <button @click="openRead" class="p-2">
                     <img src="@storage/assets/leggi.png" alt="" class="mx-auto my-2 h-14 w-14">
@@ -62,17 +69,8 @@ function closeListen() {
             </Button>
         </div>
         <ScrollArea class="px-4 relative text-white">
-            <h2 class="text-xl font-bold">Emilio Vedova</h2>
-            <p>Emilio Vedova nasce a Venezia il 9 agosto 1919. Accostatosi alla pittura da autodidatta, frequenta per un
-                breve periodo la scuola serale di decorazione ai Carmini. Nel 1942 aderisce al gruppo Corrente, cui
-                appartengono anche Renato Birolli, Umberto Vittorini, Renato Guttuso ed Ennio Morlotti. Dal 1943
-                partecipa attivamente alla Resistenza. Nel 1946, a Milano, collabora con Morlotti al manifesto Oltre
-                Guernica e a Venezia è uno dei fondatori del Fronte Nuovo delle Arti. In questo periodo inizia la serie
-                delle Geometrie nere, opere in bianco e nero che risentono dell’impostazione spaziale cubista.
-                La sua prima personale negli Stati Uniti si tiene alla Catherine Viviano Gallery di New York nel 1951,
-                anno in cui riceve anche il premio per i giovani pittori alla prima Biennale di San Paolo. Nel 1952
-                prende parte al Gruppo degli Otto. Nel 1955 partecipa alla prima Documenta di Kassel, e l’anno dopo gli
-                viene assegnato il Guggenheim International Award.</p>
+            <div class="text-xl font-bold" v-html="post.name[locale]"></div>
+            <div v-html="post.content[locale]"></div>
         </ScrollArea>
     </div>
     <div v-if="listen" class="w-screen h-screen bg-[#1e1e1e] fixed top-0 left-0 grid grid-rows-[10%_90%]">
@@ -82,9 +80,7 @@ function closeListen() {
                 <Close class="inline-block mb-1" />CHIUDI
             </Button>
         </div>
-        <AudioPlayer src="audio1.mp3" />
+        <AudioPlayer v-if="props.post?.audio?.[locale]" :src="`/storage/${props.post.audio[locale]}`" />
+        <AudioPlayer v-else :src="`/storage/media/d07bca2f-ceed-471a-b82d-9d1849344355.mp3`" />
     </div>
 </template>
-<style scoped>
-
-</style>

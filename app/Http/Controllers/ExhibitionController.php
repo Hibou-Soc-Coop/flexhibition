@@ -28,7 +28,7 @@ class ExhibitionController extends Controller
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
         $primaryLanguageCode = $primaryLanguage->code;
 
-        $exhibitionRecords = Exhibition::with([ 'museum'])->get();
+        $exhibitionRecords = Exhibition::with(['museum'])->get();
 
         $exhibitions = [];
 
@@ -48,9 +48,9 @@ class ExhibitionController extends Controller
 
             $exhibition['images'] = $exhibitionRecord->images->map(function ($image) use ($primaryLanguageCode) {
                 return [
-                        'url' => $image->getTranslations('url'),
-                        'title' => $image->getTranslations('title'),
-                        'description' => $image->getTranslations('description'),
+                    'url' => $image->getTranslations('url'),
+                    'title' => $image->getTranslations('title'),
+                    'description' => $image->getTranslations('description'),
                 ];
             })->toArray();
 
@@ -90,7 +90,7 @@ class ExhibitionController extends Controller
 
         try {
             // Create audio media if provided
-             $audioId = isset($data['audio']['file'])
+            $audioId = isset($data['audio']['file'])
                 ? $this->createMediaFromData($data['audio'], 'audio')?->id
                 : null;
 
@@ -101,14 +101,14 @@ class ExhibitionController extends Controller
                 'audio_id' => $audioId,
                 'start_date' => (!empty($data['start_date']) && $data['start_date'] !== '') ? $data['start_date'] : null,
                 'end_date' => (!empty($data['end_date']) && $data['end_date'] !== '') ? $data['end_date'] : null,
-                'is_archived' =>  false,
+                'is_archived' => false,
                 'museum_id' => $data['museum_id'] ?? null,
             ]);
 
             // Handle images
             if (isset($data['images']) && !empty($data['images'])) {
                 $imageIds = collect($data['images'])
-                ->map(function($img) {
+                    ->map(function ($img) {
                         return $this->createMediaFromData($img, 'image');
                     })
                     ->pluck('id')
@@ -145,14 +145,15 @@ class ExhibitionController extends Controller
             'start_date' => $exhibitionStartDate,
             'end_date' => $exhibitionEndDate,
             'museum_name' => $museum,
-            ];
+        ];
 
         return Inertia::render('backend/Exhibitions/Show', [
             'exhibition' => $exhibitionData,
         ]);
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
         $exhibitionRecord = Exhibition::findOrFail($id);
         $museumRecord = Museum::find($exhibitionRecord->museum_id);
@@ -173,7 +174,7 @@ class ExhibitionController extends Controller
             'end_date' => $exhibitionEndDate,
             'is_archived' => $exhibitionRecord->is_archived,
             'museum_name' => $museum,
-            ];
+        ];
 
         $museums = Museum::all();
         $museumsData = [];
@@ -198,7 +199,7 @@ class ExhibitionController extends Controller
         $data = $request->validated();
         $exhibition = Exhibition::findOrFail($id);
         DB::beginTransaction();
-        try{
+        try {
             $exhibition->update([
                 'name' => $data['name'] ?? $exhibition->name,
                 'description' => $data['description'] ?? $exhibition->description,
@@ -228,7 +229,7 @@ class ExhibitionController extends Controller
             return redirect()
                 ->route('exhibitions.index')
                 ->with('success', 'Mostra aggiornata con successo.');
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->withErrors(['error' => 'Errore durante l\'aggiornamento della mostra: ' . $e->getMessage()]);
         }
@@ -247,22 +248,41 @@ class ExhibitionController extends Controller
         return redirect()->route('exhibitions.index')->with('success', 'Exhibition deleted successfully.');
     }
 
-    private function createMediaFromData(array $data, string $type): ?Media
-        {
-            if (empty($data['file'])) {
-                return null;
-            }
+    public function showExhibitions($museumId)
+    {
+        $allExhibitionRecords = Exhibition::where('museum_id', $museumId)->get();
+        $exhibitions = [];
+        foreach ($allExhibitionRecords as $exhibitionRecord) {
+            $exhibition = [];
+            $exhibition['id'] = $exhibitionRecord->id;
+            $exhibition['name'] = $exhibitionRecord->getTranslations('name');
+            $exhibition['description'] = $exhibitionRecord->getTranslations('description');
+            $exhibition['start_date'] = $exhibitionRecord->start_date?->format('Y-m-d');
+            $exhibition['end_date'] = $exhibitionRecord->end_date?->format('Y-m-d');
+            $exhibition['audio'] = $exhibitionRecord->audio?->getTranslations('title');
+            $exhibition['images'] = $exhibitionRecord->images?->map(fn($image) => $image->getTranslations('url'));
+            $exhibition['museum_id'] = $museumId;
+            $exhibitions[] = $exhibition;
+        }
+        return Inertia::render('frontend/Collections', ['exhibitions' => $exhibitions]);
+    }
 
-            return $this->mediaService->createMedia(
-                $type,
-                $data['file'],
-                $data['title'],
-                $data['description'] ?? null,
-                'public',
-                'media'
-            );
+
+    private function createMediaFromData(array $data, string $type): ?Media
+    {
+        if (empty($data['file'])) {
+            return null;
         }
 
+        return $this->mediaService->createMedia(
+            $type,
+            $data['file'],
+            $data['title'],
+            $data['description'] ?? null,
+            'public',
+            'media'
+        );
+    }
 
     private function handleMediaUpdate(?array $data, ?int $currentMediaId, string $type): ?int
     {
@@ -365,7 +385,6 @@ class ExhibitionController extends Controller
         }
     }
 
+
+
 }
-
-
-

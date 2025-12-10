@@ -28,14 +28,11 @@ Route::prefix('backend')->group(function () {
 });
 
 Route::get('museum/{museumId}/{language?}', function ($museumId = null, $language = 'it') {
-    return Inertia::render('frontend/Museum', [ 'museumId' => $museumId, 'language' => $language ]);
+    return Inertia::render('frontend/Museum', ['museumId' => $museumId, 'language' => $language]);
 })->name('museum')->where('language', '[a-z]{2}')->where('museumId', '[0-9]+');
-Route::get('museum/{museumId}/collection/{collectionId}/{language?}', function ($museumId = null, $collectionId = null, $language = 'it') {
-    return Inertia::render('frontend/Collection', ['museumId' => $museumId, 'collectionId' => $collectionId, 'language' => $language]);
-})->name('collection.index')->where('language', '[a-z]{2}');
-Route::get('museum/{museumId}/collection/{collectionId}/post/{postId}/{language?}', function ($museumId = null, $collectionId = null, $postId = null, $language = 'it',) {
-    return Inertia::render('frontend/Post', ['museumId' => $museumId, 'collectionId' => $collectionId, 'postId' => $postId, 'language' => $language]);
-})->name('post');
+Route::get('museum/{museumId}/collections/{language?}', [ExhibitionController::class, 'showExhibitions'])->name('collections.index')->where('language', '[a-z]{2}');
+Route::get('museum/{museumId}/collections/{collectionId}/{language?}', [PostController::class, 'showPosts'])->name('post')->where('language', '[a-z]{2}');
+Route::get('museum/{museumId}/collections/{collectionId}/posts/{postId}/{language?}', [PostController::class, 'showPostDetail'])->name('post.detail')->where('language', '[a-z]{2}');
 
 
 require __DIR__ . '/settings.php';
