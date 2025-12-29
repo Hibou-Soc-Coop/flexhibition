@@ -34,6 +34,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js'),
+            '@assets': path.resolve(__dirname, 'resources/assets/'),
             '@storage': path.resolve(__dirname, 'storage/app/public/'),
             '@routes': path.resolve(__dirname, 'resources/js/routes'),
         },

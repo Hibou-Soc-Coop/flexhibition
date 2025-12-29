@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import Dropdown from '@assets/drop-down.svg';
+import LogoLight from '@assets/logo.svg';
 import { router, usePage } from '@inertiajs/vue3';
-import Dropdown from '@storage/assets/drop-down.svg';
-import LogoLight from '@storage/assets/logo.svg';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 

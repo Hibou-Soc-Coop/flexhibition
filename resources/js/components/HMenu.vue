@@ -39,18 +39,16 @@ function closeMenu() {
                 <div class="flex h-full w-full flex-col items-center justify-center overflow-hidden">
                     <ul class="mt-[30vh] mb-8 flex flex-col gap-8">
                         <li>
-                            <a
-                                class="text-3xl font-bold tracking-widest text-white"
-                                @click="router.visit(`/museum/${props.museumId}/${props.language}`)"
-                                >HOME</a
-                            >
+                            <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/museum/1/${props.language}`)">HOME</a>
                         </li>
                         <li>
-                            <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/museum/${props.museumId}/collections/1`)"
-                                >COLLEZIONE</a
-                            >
+                            <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/museum/1/collections/1`)">{{
+                                t('menu.collection')
+                            }}</a>
                         </li>
-                        <li><a class="text-3xl font-bold tracking-widest text-white">CONTATTI</a></li>
+                        <li>
+                            <a class="text-3xl font-bold tracking-widest text-white">{{ t('menu.contact') }}</a>
+                        </li>
                     </ul>
                     <button
                         @click.stop="closeMenu"
