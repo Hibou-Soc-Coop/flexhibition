@@ -142,7 +142,7 @@ export interface PostRecord {
 
 /** Informazioni multilingua su un' Opera */
 export interface PostData {
-    readonly id: string;
+    readonly id: number;
     readonly name: Record<string, string>;
     readonly description?: Record<string, string>;
     readonly content?: Record<string, string>;

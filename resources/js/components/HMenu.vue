@@ -3,9 +3,18 @@ import { ref } from 'vue';
 import Menu from '@storage/assets/burger-menu.svg';
 import Close from '@storage/assets/chiudi.svg';
 import { router } from '@inertiajs/vue3';
-// import { useDataStore } from '@/stores/app'
+import { usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 
-// const store = useDataStore();
+const page = usePage();
+const languages = page.props.languages as Array<{ code: string; name: string }>;
+const { t , locale } = useI18n();
+
+const props = defineProps<{ museumId: number; language: string }>();
+
+
+
+const currentLanguage = ref(props.language);
 const isOpen = ref(false);
 
 function toggleMenu() {
@@ -34,8 +43,8 @@ function closeMenu() {
             <template v-else>
                 <div class="flex flex-col items-center justify-center w-full h-full overflow-hidden">
                     <ul class="flex flex-col mt-[30vh] mb-8 gap-8">
-                        <li><a  class="font-bold text-white text-3xl tracking-widest" @click="router.visit('/museum')" >HOME</a></li>
-                        <li><a class="font-bold text-white text-3xl tracking-widest" @click="router.visit('/museum/collection')">COLLEZIONE</a></li>
+                        <li><a  class="font-bold text-white text-3xl tracking-widest"  @click="router.visit(`/museum/${props.museumId}/${props.language}`)" >HOME</a></li>
+                        <li><a class="font-bold text-white text-3xl tracking-widest" @click="router.visit(`/museum/${props.museumId}/collections/${props.collectionId}/`)">COLLEZIONE</a></li>
                         <li><a class="font-bold text-white text-3xl tracking-widest">CONTATTI</a></li>
                     </ul>
                     <button

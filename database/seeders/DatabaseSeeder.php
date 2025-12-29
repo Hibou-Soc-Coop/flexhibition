@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             LanguageSeeder::class,
             MediaSeeder::class,
             MuseumSeeder::class,
+            ExhibitionSeeder::class,
+            PostSeeder::class,
             SettingSeeder::class,
         ]);
     }

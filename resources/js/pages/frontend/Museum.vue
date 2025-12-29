@@ -15,7 +15,6 @@ const props = defineProps<{ museumId: number; language: string }>();
 
 
 const currentLanguage = ref(props.language);
-console.log("Current Language in Museum.vue:", currentLanguage);
 
 const loading = ref(true);
 
@@ -37,7 +36,7 @@ setTimeout(() => {
         </transition>
         <div v-if="!loading" class="intro h-full bg-white py-4">
             <p class="text-lg font-medium text-black">{{ t('intro.Introduction') }}</p>
-            <button  class="bg-black block text-white font-bold mx-auto py-4 px-8 mt-8" @click="router.visit(`/museum/${props.museumId}/collections`)">ENTRA</button>
+            <button  class="bg-black block text-white font-bold mx-auto py-4 px-8 mt-8" @click="router.visit(`/museum/${props.museumId}/collections/1`)">ENTRA</button>
         </div>
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-100"
             leave-to-class="opacity-0">

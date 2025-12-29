@@ -11,8 +11,17 @@
             "collection": "COLLEZIONE",
             "contact": "CONTATTI"
         },
+        "listen": {
+            "Listen": "ASCOLTA"
+        },
+        "read": {
+            "Read": "LEGGI"
+        },
         "close": {
             "Close": "CHIUDI"
+        },
+        "enter": {
+            "Enter": "ENTRA"
         }
     },
     "en": {
@@ -27,8 +36,17 @@
             "collection": "COLLECTION",
             "contact": "CONTACT"
         },
+        "listen": {
+            "Listen": "LISTEN"
+        },
+        "read": {
+            "Read": "READ"
+        },
         "close": {
             "Close": "CLOSE"
+        },
+        "enter": {
+            "Enter": "ENTER"
         }
     }
 }

@@ -18,6 +18,7 @@ function getCurrentUrlWithoutLanguage() {
         splitUrl.pop();
     }
     currentUrl.value = splitUrl.join('/');
+    console.log("Current URL:", currentUrl.value);
     return currentUrl.value;
 }
 </script>

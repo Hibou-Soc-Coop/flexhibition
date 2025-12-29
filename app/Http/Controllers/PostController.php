@@ -258,9 +258,9 @@ class PostController extends Controller
             return back()->withErrors(['error' => 'Errore durante l\'eliminazione del post: ' . $e->getMessage()]);
         }
     }
-    public function showPosts($exhibtionId)
+    public function showPosts($museumId, $exhibitionId, $language = 'it')
     {
-        $allPostsRecord = Post::where('exhibition_id', $exhibtionId)->get();
+        $allPostsRecord = Post::where('exhibition_id', $exhibitionId)->get();
         $posts = [];
         foreach ($allPostsRecord as $postRecord) {
             $post = [];
@@ -270,12 +270,12 @@ class PostController extends Controller
             $post['content'] = $postRecord->getTranslations('content');
             $post['audio'] = $postRecord->audio?->getTranslations('url');
             $post['images'] = $postRecord->images?->map(fn($image) => $image->getTranslations('url'));
-            $post['exhibition_id'] = $exhibtionId;
+            $post['exhibition_id'] = $exhibitionId;
             $posts[] = $post;
         }
         return Inertia::render('frontend/Posts', ['posts' => $posts]);
     }
-    public function showPostDetail($postId)
+    public function showPostDetail($museumId, $collectionId, $postId, $language = 'it')
     {
         $postRecord = Post::findOrFail($postId);
         $post = [];
