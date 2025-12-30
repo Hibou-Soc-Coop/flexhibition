@@ -8,8 +8,7 @@ use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::redirect('/', '/backend');
-Route::redirect('/museum', '/museum/1/it');
+Route::redirect('/', '/museum/1/it');
 
 Route::prefix('backend')->group(function () {
     Route::get('/', function () {
