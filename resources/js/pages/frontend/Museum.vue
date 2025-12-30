@@ -29,10 +29,10 @@ setTimeout(() => {
     <div ref="containerRef" class="relative h-screen w-screen snap-y snap-mandatory overflow-y-scroll">
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-0" leave-to-class="opacity-100">
             <div v-if="!loading" class="flex h-full w-full snap-start items-center justify-center">
-                <img class="absolute inset-0 h-full" src="@assets/2.jpeg" alt="" />
+                <img class="absolute inset-0 h-full object-cover" src="@assets/1.jpg" alt="" />
                 <img class="relative z-10 h-[454px] w-[187px]" src="@assets/logo-trasparente.png" alt="" />
                 <Dropdown
-                    class="absolute bottom-8 cursor-pointer place-self-center not-last:animate-[bounce_2s_infinite]"
+                    class="absolute bottom-8 cursor-pointer place-self-center animate-[bounce_2s_infinite]"
                     @click="scrollToNextScreen"
                 />
             </div>
@@ -43,7 +43,7 @@ setTimeout(() => {
                 class="mx-auto mt-8 block bg-black px-8 py-4 font-bold text-white"
                 @click="router.visit(`/museum/${props.museumId}/collections/1`)"
             >
-                ENTRA
+                {{ t('enter.Enter') }}
             </button>
         </div>
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-100" leave-to-class="opacity-0">

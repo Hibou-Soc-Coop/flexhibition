@@ -15,43 +15,6 @@ class ExhibitionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Creare prima i media per il nuovo museo
-        $audioMedia = Media::create([
-            'type' => 'audio',
-            'url' => [
-                'it' => '/sample-data/audio/164689__deleted_user_2104797__phone_voice_cartoon.wav',
-                'en' => '/sample-data/audio/164689__deleted_user_2104797__phone_voice_cartoon.wav'
-            ],
-            'title' => [
-                'it' => 'Audio guida Museo Nivola',
-                'en' => 'Nivola Museum Audio Guide'
-            ],
-            'description' => [
-                'it' => 'Introduzione audio alla mostra Nivola',
-                'en' => 'Audio introduction to the Nivola Exhibition'
-            ]
-        ]);
-
-        // Creare le 4 immagini del museo
-        $imageMediaIds = [];
-            $imageMedia = Media::create([
-                'type' => 'image',
-                'url' => [
-                    'it' => "/assets/exhibition_image_1.jpeg",
-                    'en' => "/assets/exhibition_image_1.jpeg"
-                ],
-                'title' => [
-                    'it' => "Immagine 1 - Mostra Nivola",
-                    'en' => "Image 1 - Nivola Exhibition"
-                ],
-                'description' => [
-                    'it' => "Fotografia delle collezioni del Museo Nivola - Immagine 1",
-                    'en' => "Photography of the Nivola Museum collections - Image 1"
-                ]
-            ]);
-            $imageMediaIds[] = $imageMedia->id;
-
-
         // Creare il nuovo museo con logo e audio
         $newExhibition = Exhibition::create([
             'name' => [
@@ -64,19 +27,9 @@ class ExhibitionSeeder extends Seeder
             ],
             'start_date' => '2024-01-01',
             'end_date' => '2030-01-01',
-            'audio_id' => $audioMedia->id,
+            'audio_id' => null,
             'is_archived' => false,
             'museum_id' => 1
         ]);
-
-        // Collegare le immagini al museo tramite la tabella pivot
-        foreach ($imageMediaIds as $imageId) {
-            DB::table('exhibition_images')->insert([
-                'exhibition_id' => $newExhibition->id,
-                'media_id' => $imageId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        }
     }
 }

@@ -10,7 +10,7 @@
             "menu": "MENU",
             "home": "HOME",
             "collection": "COLLEZIONE",
-            "contact": "CONTATTI"
+            "credits": "CREDITI"
         },
         "listen": {
             "Listen": "ASCOLTA"
@@ -27,7 +27,7 @@
     },
     "en": {
         "intro": {
-            "Introduction": "This useum preserves the world’s most important collection of works by Costantino Nivola, including sculptures and paintings—over 200 pieces acquired through successive donations. The initial selection, made by the artist’s widow, Ruth Guggenheim, focused on Nivola’s sculptural work, particularly the final phase of his career, marked by a return to statuary—with the series Madri and Vedove—and to the noble materials of traditional sculpture."
+            "Introduction": "This museum preserves the world’s most important collection of works by Costantino Nivola, including sculptures and paintings—over 200 pieces acquired through successive donations. The initial selection, made by the artist’s widow, Ruth Guggenheim, focused on Nivola’s sculptural work, particularly the final phase of his career, marked by a return to statuary—with the series Madri and Vedove—and to the noble materials of traditional sculpture."
         },
         "collection": {
             "title": "Collection"
@@ -36,7 +36,7 @@
             "menu": "MENU",
             "home": "HOME",
             "collection": "COLLECTION",
-            "contact": "CONTACT"
+            "credits": "CREDITS"
         },
         "listen": {
             "Listen": "LISTEN"
@@ -49,6 +49,32 @@
         },
         "enter": {
             "Enter": "ENTER"
+        }
+    },
+    "fr": {
+        "intro": {
+            "Introduction": "Ce musée conserve la collection la plus importante au monde d'œuvres de Costantino Nivola, comprenant des sculptures et des peintures—plus de 200 pièces acquises par le biais de dons successifs. La sélection initiale, effectuée par la veuve de l'artiste, Ruth Guggenheim, s'est concentrée sur le travail sculptural de Nivola, en particulier la phase finale de sa carrière, marquée par un retour à la statuaire—avec les séries Madri et Vedove—et aux matériaux nobles de la sculpture traditionnelle."
+        },
+        "collection": {
+            "title": "Collection"
+        },
+        "menu": {
+            "menu": "MENU",
+            "home": "ACCUEIL",
+            "collection": "COLLECTION",
+            "credits": "CRÉDITS"
+        },
+        "listen": {
+            "Listen": "ÉCOUTER"
+        },
+        "read": {
+            "Read": "LIRE"
+        },
+        "close": {
+            "Close": "FERMER"
+        },
+        "enter": {
+            "Enter": "ENTRER"
         }
     }
 }

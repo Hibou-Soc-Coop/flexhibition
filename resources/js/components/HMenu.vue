@@ -45,7 +45,7 @@ function closeMenu() {
                         </li>
                         <li>
                             <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/credits/${locale}`)">{{
-                                t('menu.contact')
+                                t('menu.credits')
                             }}</a>
                         </li>
                     </ul>

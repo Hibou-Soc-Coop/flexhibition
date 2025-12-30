@@ -24,7 +24,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             LanguageSeeder::class,
-            MediaSeeder::class,
             MuseumSeeder::class,
             ExhibitionSeeder::class,
             PostSeeder::class,

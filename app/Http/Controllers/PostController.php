@@ -268,8 +268,10 @@ class PostController extends Controller
             $post['name'] = $postRecord->getTranslations('name');
             $post['description'] = $postRecord->getTranslations('description');
             $post['content'] = $postRecord->getTranslations('content');
-            $post['audio'] = $postRecord->audio?->getTranslations('url');
-            $post['images'] = $postRecord->images?->map(fn($image) => $image->getTranslations('url'));
+            $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
+            $post['images'] = $postRecord->images?->map(function ($image) {
+                return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
+            });
             $post['exhibition_id'] = $exhibitionId;
             $posts[] = $post;
         }
@@ -283,8 +285,10 @@ class PostController extends Controller
         $post['name'] = $postRecord->getTranslations('name');
         $post['description'] = $postRecord->getTranslations('description');
         $post['content'] = $postRecord->getTranslations('content');
-        $post['audio'] = $postRecord->audio?->getTranslations('url');
-        $post['images'] = $postRecord->images?->map(fn($image) => $image->getTranslations('url'));
+        $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
+        $post['images'] = $postRecord->images?->map(function ($image) {
+            return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
+        });
         $post['exhibition_id'] = $postRecord->exhibition_id;
 
         return Inertia::render('frontend/Post', ['post' => $post]);

@@ -32,7 +32,7 @@ function getCurrentUrlWithoutLanguage() {
             <img
                 v-for="exhibition in exhibitions"
                 :key="exhibition.id"
-                :src="`/storage${exhibition.images[0][locale] || exhibition.images[0]['it']}`"
+                :src="`/assets${exhibition.images[0][locale]}` || `/assets/${exhibition.images[0]['it']}`"
                 alt=""
                 @click="router.visit(`${getCurrentUrlWithoutLanguage()}/${exhibition.id}/${locale}`)"
                 class="mb-4 rounded-[40%] bg-white"

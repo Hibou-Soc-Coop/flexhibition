@@ -39,8 +39,8 @@ function closeListen() {
         <LanguageMenu />
         <div class="mx-auto mt-2 grid h-full w-[90%] grid-cols-2 grid-rows-[60%_20%_20%] justify-center *:border *:border-black">
             <!-- FIXME: Le immagini dei post non dovrebbero essere hardcoded ma presi da DB -->
-            <img :src="`/storage/assets/collections/${post.id}.png`" alt="" class="col-span-2 h-full w-full bg-[#dfdfdf] object-contain" />
-            <div class="col-span-2 overflow-scroll pt-1 text-center text-lg font-bold" v-html="post.name[locale]"></div>
+            <img :src="post.images[0][locale] || post.images[0]['it']" alt="" class="col-span-2 h-full w-full bg-[#dfdfdf] object-contain" />
+            <div class="col-span-2 overflow-scroll pt-1 text-center text-lg font-bold" v-html="post.name[locale] || post.name['it']"></div>
             <div class="grid items-center justify-center">
                 <button @click="openRead" class="p-1">
                     <img src="@assets/leggi.png" alt="" class="mx-auto my-2 h-14 w-14" />
@@ -66,8 +66,8 @@ function closeListen() {
             </Button>
         </div>
         <ScrollArea class="relative px-4 text-white">
-            <div class="mb-2 px-2 text-xl font-bold" v-html="post.name[locale]"></div>
-            <div class="px-2 text-justify" v-html="post.description?.[locale]"></div>
+            <div class="mb-2 px-2 text-xl font-bold" v-html="post.name[locale] || post.name['it']"></div>
+            <div class="px-2 text-justify" v-html="post.description?.[locale] || post.description?.['it']"></div>
         </ScrollArea>
     </div>
     <div v-if="listen" class="fixed top-0 left-0 grid h-screen w-screen grid-rows-[10%_90%] bg-[#1e1e1e]">
@@ -76,7 +76,7 @@ function closeListen() {
                 <Close class="mb-1 inline-block" /> {{ t('close.Close') }}
             </Button>
         </div>
-        <AudioPlayer v-if="post?.audio?.url?.[locale]" :src="`/storage/${post.audio.url[locale]}`" />
-        <AudioPlayer v-else :src="`/storage/media/d07bca2f-ceed-471a-b82d-9d1849344355.mp3`" />
+        <AudioPlayer v-if="post.audio?.[locale]" :src="post.audio[locale] || post.audio['it']" />
+        <AudioPlayer v-else :src="`@assets/audio.mp3`" />
     </div>
 </template>

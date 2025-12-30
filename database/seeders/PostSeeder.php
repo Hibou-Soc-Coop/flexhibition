@@ -1,10 +1,13 @@
 <?php
 
 namespace Database\Seeders;
+
+use App\Services\MediaService;
 use App\Models\Post;
 use App\Models\Media;
 use App\Models\Museum;
 use Illuminate\Database\Seeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class PostSeeder extends Seeder
@@ -14,25 +17,10 @@ class PostSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create audio media (shared for all posts)
-        $audioMedia = Media::create([
-            'type' => 'audio',
-            'url' => [
-                'it' => '/assets/collections/audio/164689__deleted_user_2104797__phone_voice_cartoon.wav',
-                'en' => '/assets/collections/audio/164689__deleted_user_2104797__phone_voice_cartoon.wav',
-            ],
-            'title' => [
-                'it' => 'Audio guida Opera',
-                'en' => 'Collection Audio Guide',
-            ],
-            'description' => [
-                'it' => 'Introduzione audio alla Opera',
-                'en' => 'Audio introduction to the collection',
-            ],
-        ]);
+        $mediaService = app(MediaService::class);
 
         // Create 11 posts, each with 1 image and the same audio
-        $postNames = ['Introduzione', 'Bozzetti per la decorazione murale dello showroom Olivetti a New York, 1953', 'Ruth e Pietro in cucina (Natura morta con Ruth Guggenheim), 1946, olio su tela, collezione MAN', 'Figura femminile, da “Gli antenati”, 1952', 'Bozzetto per la facciata (...) Hartford, Connecticut, 1957-1958', 'Figura maschile, Pastore Sardo, 1966', 'Pergola Village, progetto per Orani, 1953', 'Tre dipinti della serie Ritratti di sculture, 1975', 'Modelli per vari monumenti (unico punto), 1957-1968', 'La città incredibile, 1979', 'Madre, da modello, 1981-1985', 'La stanza delle terrecotte'];
+        $postNames = ['Introduzione', 'Bozzetti per la decorazione murale dello showroom Olivetti a New York, 1953', 'Ruth e Pietro in cucina (Natura morta con Ruth Guggenheim), 1946', 'Figura femminile, dalla serie Gli antenati, 1952', 'Bozzetto per la facciata della Mutual Insurance Company of Hartford, 1957-1958', 'Figura maschile, Pastore Sardo, 1966', 'Pergola Village, progetto per Orani, 1953', 'Tre dipinti della serie Ritratti di sculture, 1975', 'Modello per un monumento alla bandiera americana, anni Ottanta', 'La città incredibile I, 1979', 'Madre, da modello, 1981-1985', 'La terra sovrappopolata, 1972'];
         $postDescriptions = [
             'Titinu: Oh ciao! Non vi avevo notato! Vi state guardando intorno curiosi o vi state chiedendo che strano posto è questo? In effetti anche io, la prima volta che sono arrivato ero un po’ stupito. Era la prima volta che notavo questa breve scala che scendeva verso un giardino silenzioso. Mi sembrava un posto interessante e così, subito, mi ci sono infilato. Mi è sembrato subito un posto magico, un po’ misterioso e nascosto rispetto a tutti quelli che passavano, in macchina o a piedi, sulla strada lì  vicino. Arrivato nel giardino mi sono guardato intorno: avevo ragione, quel posto non  era come tutti gli altri! Gli alberi, dalle foglie scure, mi proteggevano dal sole e  tutt’intorno correvano dei piccoli canali con dell’acqua ma non era quello a stupirmi di  più. Voltandomi a destra e a sinistra vedevo delle figure silenziose: statue  completamente bianche o nere, altre che non capivo bene cosa raffigurassero. A quel  punto un po’ di curiosità mi era venuta: in che posto ero capitato? Cosa  rappresentavano quelle statue? Alcune mi ricordavano delle persone, ma non ero  proprio sicuro. Dovevo assolutamente indagare! Così ho camminato fino alla porta,  sono entrato e ho sceso le scale. In quelle due sale c’era di tutto: quadri con mille  dettagli e bandiere piccolissime, così piccole che quasi non le vedevi, strane sculture  con delle corna e il pianeta terra tutto ricoperto di piccole figurine di bronzo! Anche i  materiali erano un po’ strani e non mi sembravano quelli che usiamo quando facciamo  le ore di arte: c’era il ferro, dei tessuti e persino delle sculture in cemento: come quello  dei muri o dei marciapiedi. Ci ho messo un po\' a mettere ordine le idee, ho dovuto chiedere a un po’ di persone e sono tornato più di una volta. Ora  potrei quasi definirmi un esperto! Ho scoperto che tutte quelle opere, tutti quegli oggetti  strani, avevano un significato profondo ma semplice, che chiunque può capire. Come  se non bastasse dietro c’erano delle mani speciali: le mani di un uomo coraggioso con  una vita davvero avventurosa. Per saperne di più dobbiamo scendere le scale.. Ah, aspettate, non vi ho raccontato nulla su di me: Orani è la mia casa e io abito  proprio qui vicino, in fondo alla strada. La mia famiglia e i miei amici mi chiamano tutti  Titinu, potete chiamarmi così anche voi. Ora entriamo, vi faccio conoscere una persona  speciale.',
             'Titinu: Rieccomi! Vi state chiedendo cosa sono queste figure? In che modo vanno guardate e in che strano materiale sono fatte? Capisco… anche io all’inizio avevo le stesse domande. Per ora posso dirvi solo che le ha create quella persona dalle mani speciali di cui vi raccontavo prima, il suo nome era Costantino Nivola. Ma per capirci qualcosa di più la persona a cui dobbiamo chiedere è Ruth: lei sa tutto. Ruth: Oh eccoti Titinu e dietro di te vedo alcune facce nuove! Che bello essere qui con voi e potervi raccontare delle avventure che ho attraversato e di Costantino, Antine come lo chiamavo io, che è stato con me in ogni momento. Il mio nome è Ruth Guggenheim. Come? Cosa dite? Vi sembra un cognome particolare? Beh, avete ragione! La mia famiglia era di origine ebraica e io sono nata in Germania in un anno che ora sembra lontanissimo: il 1917. Erano anni molto duri: anche se ero solo una bambina ricordo bene mio padre preoccupato perchè in Germania si moltiplicavano i crimini e le violenze contro gli ebrei. Così scappammo in Italia, senza sapere che anche lì i guai ci avrebbero raggiunto… ma questo ve lo racconterò più avanti. A quel punto non ero più una bambina ma una ragazza di 16 anni. Anche se avevo cambiato stato e città le mie passioni restavano intatte: mi interessava l’arte e adoravo creare. Così mi iscrissi all’Istituto d’Arte ed è stato proprio lì che ho incontrato Antine. Devo dire che notarlo non era difficile: in tutta la scuola, che era a Monza, c’erano solo tre ragazzi sardi che stavano sempre insieme ed erano uno più talentuoso dell’altro. Io e Antine ci siamo piaciuti subito e infatti poi non ci siamo più lasciati anche se venivamo da mondi molto diversi, lui da un piccolo paese della Sardegna e io da una grande città tedesca. Ogni opera di questo museo mi ricorda un momento diverso della nostra vita insieme. Qui, per esempio, Antine aveva appena ottenuto un lavoro importante. Provate a immaginare di essere sulla Fifth Avenue a New York, una delle strade più famose del mondo. Auto, taxi gialli, persone che camminano veloci, grattacieli altissimi. In mezzo a tutto questo, negli anni Cinquanta, c’era un negozio speciale della ditta Olivetti, dove si vendevano macchine da scrivere e calcolatrici, ma anche un’idea nuova di bellezza e di lavoro. Adriano Olivetti, il direttore, pensava che le persone, quando entravano in un luogo di lavoro, meritassero di trovare anche armonia, luce, bellezza. Per questo chiamò architetti e artisti moderni, e tra questi c’era proprio Antine. I bozzetti che vedi qui sono i suoi primi pensieri per decorare le pareti e i muri del negozio. Era un’idea rivoluzionaria: per vedere l’arte non si doveva più entrare in un museo ma era lì, mescolata alle cose di tutti i giorni. Ma ora andiamo avanti voglio mostrarvi un’altra opera…',
@@ -49,22 +37,45 @@ segni diventano palazzi, finestre, strade, macchine, persone piccolissime blocca
             'Titinu:«Mia nonna mi ha raccontato una cosa curiosa: che più si diventa grandi, proprio  anziani, più si ripensa a quando si era piccoli e quei ricordi lontanissimi diventano quasi  magici. Io penso che qualcosa del genere sia capitato anche a Nivola che più diventava  grande e più scavava nei suoi primissimi ricordi e lì trovava sempre ispirazione. Questa  grande statua tutta bianca, con una piccola curva al centro lui l’ha intitolata “Madre” e  allora capiamo subito bene cos’è: una mamma che aspetta nel suo grembo il segreto di un figlio meraviglioso. Per crearla lui aveva ripensato alla sua casa di quando era piccolo e al “muro  panciuto” dove si cuoceva il pane. Il pane allora era preziosissimo. La curva nel muro, dove si cuoceva il pane, nascondeva quindi un tesoro, la promossa di appagare la fame una volta per sempre, come una madre nasconde nel suo grembo il segreto di un figlio meraviglioso. Nivola  mescola quindi i suoi ricordi con una figura semplice ma molto potente. Questa  mamma sembra aprirsi in un abbraccio verso tutti quelli che gli stanno davanti. Per  scolpirla Nivola sceglie il marmo, una pietra nobile e durissima. Forse ha scelto proprio per  questo motivo, per dire: l’amore dei genitori non si spezza facilmente.',
             'Ruth: «Questa grande sfera scura sembra, a prima vista, un pianeta misterioso perso nello spazio. Avvicinati un po’ di più con lo sguardo: non è liscia come una palla da gioco, la superficie è piena di piccole forme, curve, solchi, rilievi che si intrecciano. È come se qualcuno avesse modellato tante figure minuscole, una accanto all’altra, finché non c’è più neanche un millimetro di spazio libero. Per questo l’opera si chiama “La terra sovrappopolata”: una terra dove ci sono talmente tante presenze da non poterle più contare una per una. Nivola ha lavorato spesso con materiali duri come il cemento o il marmo, ma qui torna a un modo di modellare molto vicino al gioco: impasta, aggiunge, schiaccia, incide. Immagina le sue mani che girano intorno alla sfera, aggiungendo continuamente piccoli segni, come se stesse scrivendo una storia senza parole. Ogni segno può essere una persona, un animale, una casa, un pensiero. Nessuno è grande, nessuno domina sugli altri: tutti insieme formano la pelle del pianeta. In una scultura come questa sembra chiederci: “Cosa succede alla Terra quando diventiamo sempre di più? Proviamo a fare un gioco: scegli con gli occhi un punto qualsiasi della superficie e fissalo per qualche secondo. Cosa ti sembra di vedere? Un volto, un corpo, un animale, o solo una macchia? Ora sposta lo sguardo, ruota un po’ intorno alla sfera e cerca un altro dettaglio. Capirai che l’opera non finisce mai: più la osservi, più scopri forme nuove. E forse ti verrà voglia di pensare anche a questo: se la Terra vera potesse parlare, che cosa direbbe di noi che la abitiamo tutti insieme, stretti stretti sulla sua superficie?”'
         ];
-        for ($i = 0; $i <= 11; $i++) {
-            $imageMedia = Media::create([
-                'type' => 'image',
-                'url' => [
-                    'it' => "/assets/collections/{$i}.png",
-                    'en' => "/assets/collections/{$i}.png",
-                ],
-                'title' => [
-                    'it' => "Immagine {$i} - Collezione",
-                    'en' => "Image {$i} - Collection",
-                ],
-                'description' => [
-                    'it' => "Fotografia della collezione - Immagine {$i}",
-                    'en' => "Collection photo - Image {$i}",
-                ],
-            ]);
+
+        $postImages = [];
+
+        for ($i = 0; $i <= count($postNames) - 1; $i++) {
+
+
+        $imageSourcePath = resource_path("assets/collections/$i.png");
+
+        // Create temp files for each language to avoid file locking/moving issues
+        $imageTempPathIt = tempnam(sys_get_temp_dir(), 'it');
+        copy($imageSourcePath, $imageTempPathIt);
+        $imageFileIt = new UploadedFile($imageTempPathIt, "$i.png", 'image/png', null, true);
+
+        $imageTempPathEn = tempnam(sys_get_temp_dir(), 'en');
+        copy($imageSourcePath, $imageTempPathEn);
+        $imageFileEn = new UploadedFile($imageTempPathEn, "$i.png", 'image/png', null, true);
+        $imageMedia = $mediaService->createMedia(
+            'image',
+            ['it' => $imageFileIt, 'en' => $imageFileEn],
+            ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i],
+            ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official image of the artwork $i"]
+        );
+
+        $audioSourcePath = resource_path("assets/collections/$i.mp3");
+
+        // Create temp files for each language to avoid file locking/moving issues
+        $audioTempPathIt = tempnam(sys_get_temp_dir(), 'it');
+        copy($audioSourcePath, $audioTempPathIt);
+        $audioFileIt = new UploadedFile($audioTempPathIt, "$i.mp3", 'audio/mpeg', null, true);
+
+        $audioTempPathEn = tempnam(sys_get_temp_dir(), 'en');
+        copy($audioSourcePath, $audioTempPathEn);
+        $audioFileEn = new UploadedFile($audioTempPathEn, "$i.mp3", 'audio/mpeg', null, true);
+        $audioMedia = $mediaService->createMedia(
+            'audio',
+            ['it' => $audioFileIt, 'en' => $audioFileEn],
+            ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i],
+            ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official audio of the artwork $i"]
+        );
 
             $post = Post::create([
                 'name' => [
