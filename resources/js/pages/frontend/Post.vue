@@ -42,13 +42,13 @@ function closeListen() {
             <div class="col-span-2 overflow-scroll pt-1 text-center text-lg font-bold" v-html="post.name[locale] || post.name['it']"></div>
             <div class="grid items-center justify-center">
                 <button @click="openRead" class="p-1">
-                    <img src="@assets/leggi.png" alt="" class="mx-auto my-2 h-14 w-14" />
+                    <img src="@assets/leggi.png" alt="" class="mx-auto my-2 h-11 w-14" />
                     <h2 class="text-xl font-bold">{{ t('read.Read') }}</h2>
                 </button>
             </div>
             <div class="grid items-center justify-center">
                 <button @click="openListen" class="p-1">
-                    <img src="@assets/audio.png" alt="" class="mx-auto my-2 h-12 w-12" />
+                    <img src="@assets/audio.png" alt="" class="mx-auto my-2 h-11 w-12" />
                     <h2 class="text-xl font-bold">{{ t('listen.Listen') }}</h2>
                 </button>
             </div>
