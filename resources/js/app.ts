@@ -22,13 +22,13 @@ createInertiaApp({
         ),
     setup({ el, App, props, plugin }) {
 
-    const splitUrl = window.location.pathname.split('/');
-    const languages  = props.initialPage.props.languages as Array<{code: string, name: string}>;
-    let lang = null;
+        const splitUrl = window.location.pathname.split('/');
+        const languages = props.initialPage.props.languages as Array<{ code: string, name: string }>;
+        let lang = null;
 
-    if (languages.some(lang => lang.code === splitUrl[splitUrl.length - 1])) {
-        lang = splitUrl.pop();
-    }
+        if (languages.some(lang => lang.code === splitUrl[splitUrl.length - 1])) {
+            lang = splitUrl.pop();
+        }
         const defaultLocale = lang ? lang : (localStorage.getItem('lang') || 'it');
 
         const i18n = createI18n({
@@ -49,4 +49,4 @@ createInertiaApp({
 });
 
 // This will set light / dark mode on page load...
-initializeTheme();
+// initializeTheme();
