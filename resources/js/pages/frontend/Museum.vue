@@ -26,7 +26,7 @@ setTimeout(() => {
 </script>
 
 <template>
-    <div ref="containerRef" class="relative h-screen w-screen snap-y snap-mandatory overflow-y-scroll">
+    <div ref="containerRef" class="relative h-dvh w-dvw snap-y snap-mandatory overflow-y-scroll">
         <transition leave-active-class="transition-opacity duration-3000" leave-from-class="opacity-0" leave-to-class="opacity-100">
             <div v-if="!loading" class="flex h-full w-full snap-start items-center justify-center">
                 <img class="absolute inset-0 h-full object-cover" src="@assets/1.jpg" alt="" />

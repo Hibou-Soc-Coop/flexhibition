@@ -44,8 +44,8 @@ const deleteExhibition = () => {
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                     <Label class="block text-lg font-semibold"> Audio Mostra </Label>
                     <audio
-                        v-if="props.exhibition.audio.url[primaryLanguage.code]"
-                        :src="`/storage/${props.exhibition.audio.url[primaryLanguage.code]}`"
+                        v-if="props.exhibition.audio?.url[primaryLanguage.code]"
+                        :src="`/storage/${props.exhibition.audio.url[primaryLanguage.code] || ''}`"
                         controls
                         class="mt-2 w-full"
                     />

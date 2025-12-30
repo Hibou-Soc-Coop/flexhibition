@@ -78,7 +78,7 @@ function submit() {
                         <!-- {{ form.logo.url[primaryLanguage.code] }} -->
                         <div class="overflow-hidden rounded-md border border-gray-300">
                             <SingleMediaUpload v-if="props.museum.logo.url[primaryLanguage.code]"
-                                :media_preview="`/storage${props.museum.logo.url[primaryLanguage.code]}`" v-model="form.logo"
+                                :media_preview="`/storage/${props.museum.logo.url[primaryLanguage.code]}`" v-model="form.logo"
                                 :is-readonly="false" :accept="'image/*'" :max-file-size="5 * 1024 * 1024" />
                            <div v-else class="mt-2 w-full rounded-md border border-gray-300 bg-gray-100">
                             <p class="p-4 text-sm text-gray-500">Nessun logo disponibile</p>
@@ -87,8 +87,8 @@ function submit() {
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Audio Museo </Label>
-                        <SingleMediaUpload v-model="form.audio" v-if="props.museum.audio.url[primaryLanguage.code]"
-                            :media_preview="`/storage/${props.museum.audio.url[primaryLanguage.code]}`" :is-readonly="false"
+                        <SingleMediaUpload v-model="form.audio" v-if="props.museum.audio?.url[primaryLanguage.code]"
+                            :media_preview="`/storage/${props.museum.audio.url[primaryLanguage.code] || ''}`" :is-readonly="false"
                             :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                         <div v-else class="mt-2 w-full rounded-md border border-gray-300 bg-gray-100">
                             <p class="p-4 text-sm text-gray-500">Nessun audio disponibile</p>

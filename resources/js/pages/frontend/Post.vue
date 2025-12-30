@@ -35,7 +35,7 @@ function closeListen() {
 }
 </script>
 <template>
-    <div class="grid h-screen w-screen grid-rows-[15%_70%_15%]">
+    <div class="grid h-dvh w-dvw grid-rows-[15%_70%_15%]">
         <LanguageMenu />
         <div class="mx-auto mt-2 grid h-full w-[90%] grid-cols-2 grid-rows-[60%_20%_20%] justify-center *:border *:border-black">
             <!-- FIXME: Le immagini dei post non dovrebbero essere hardcoded ma presi da DB -->

@@ -55,8 +55,8 @@ const deleteMuseum = () => {
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                     <Label class="block text-lg font-semibold"> Audio Museo </Label>
                     <audio
-                        v-if="props.museum.audio.url[primaryLanguage.code]"
-                        :src="`/storage/${props.museum.audio.url[primaryLanguage.code]}`"
+                        v-if="props.museum.audio?.url[primaryLanguage.code]"
+                        :src="`/storage/${props.museum.audio.url[primaryLanguage.code] || ''}`"
                         controls
                         class="mt-2 w-full"
                     />

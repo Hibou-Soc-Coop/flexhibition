@@ -23,7 +23,7 @@ function getCurrentUrlWithoutLanguage() {
 }
 </script>
 <template>
-    <div class="grid h-screen grid-rows-[15%_85%]">
+    <div class="grid h-dvh grid-rows-[15%_85%]">
         <div class="flex flex-col items-center justify-center bg-white">
             <LanguageMenu />
             <h1 class="text-3xl font-bold">{{ t('collection.title') }}</h1>
