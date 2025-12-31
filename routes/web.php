@@ -27,7 +27,11 @@ Route::prefix('backend')->group(function () {
 });
 
 Route::get('museum/{museumId}/{language?}', function ($museumId = null, $language = 'it') {
-    return Inertia::render('frontend/Museum', ['museumId' => $museumId, 'language' => $language]);
+    return Inertia::render('frontend/Museum', [
+        'museumId' => $museumId,
+        'language' => $language,
+        'skipAnimation' => request()->boolean('skipAnimation')
+    ]);
 })->name('museum')->where('language', '[a-z]{2}')->where('museumId', '[0-9]+');
 Route::get('museum/{museumId}/collections/{language?}', [ExhibitionController::class, 'showExhibitions'])->name('collections.index')->where('language', '[a-z]{2}');
 Route::get('museum/{museumId}/collections/{collectionId}/{language?}', [PostController::class, 'showPosts'])->name('post')->where('language', '[a-z]{2}');
