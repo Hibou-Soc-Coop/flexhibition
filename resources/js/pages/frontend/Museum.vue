@@ -9,7 +9,7 @@ const page = usePage();
 const languages = page.props.languages as Array<{ code: string; name: string }>;
 const { t, locale } = useI18n();
 
-const props = defineProps<{ museumId: number; language: string }>();
+const props = defineProps<{ museumId: number; language: string; skipAnimation: boolean }>();
 
 const currentLanguage = ref(props.language);
 
@@ -20,9 +20,13 @@ const scrollToNextScreen = () => {
     containerRef.value?.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
 };
 
-setTimeout(() => {
+if (!props.skipAnimation) {
+    setTimeout(() => {
+        loading.value = false;
+    }, 2000);
+} else {
     loading.value = false;
-}, 2000);
+}
 </script>
 
 <template>
@@ -31,10 +35,7 @@ setTimeout(() => {
             <div v-if="!loading" class="flex h-full w-full snap-start items-center justify-center">
                 <img class="absolute inset-0 h-full object-cover" src="@assets/1.jpg" alt="" />
                 <img class="relative z-10 h-[454px] w-[187px]" src="@assets/logo-trasparente.png" alt="" />
-                <Dropdown
-                    class="absolute bottom-8 cursor-pointer place-self-center animate-[bounce_2s_infinite]"
-                    @click="scrollToNextScreen"
-                />
+                <Dropdown class="absolute bottom-8 animate-[bounce_2s_infinite] cursor-pointer place-self-center" @click="scrollToNextScreen" />
             </div>
         </transition>
         <div v-if="!loading" class="intro h-full w-full snap-start bg-white p-4">
