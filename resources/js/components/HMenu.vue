@@ -34,9 +34,11 @@ function closeMenu() {
                 <div class="flex h-full w-full flex-col items-center justify-center overflow-hidden">
                     <ul class="mt-[30vh] mb-8 flex flex-col gap-8">
                         <li>
-                            <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/museum/1/${locale}`)">{{
-                                t('menu.home')
-                            }}</a>
+                            <a
+                                class="text-3xl font-bold tracking-widest text-white"
+                                @click="router.visit(`/museum/1/${locale}`, { data: { skipAnimation: true } })"
+                                >{{ t('menu.home') }}</a
+                            >
                         </li>
                         <li>
                             <a class="text-3xl font-bold tracking-widest text-white" @click="router.visit(`/museum/1/collections/1/${locale}`)">{{
