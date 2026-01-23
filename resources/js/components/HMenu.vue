@@ -18,12 +18,12 @@ function closeMenu() {
 </script>
 
 <template>
-    <div class="fixed bottom-4 z-40 flex w-full justify-center">
+    <div class="fixed z-20 bottom-4 left-0 flex w-full justify-center">
         <button
             @click="toggleMenu"
             :class="[
                 'flex items-center justify-center bg-black/75 transition-all duration-300 focus:outline-none',
-                isOpen ? 'h-[90vh] w-[75vw] rounded-[2vw] shadow-xl' : 'h-16 w-32 rounded-[10%] shadow-lg',
+                isOpen ? 'h-[80vh] w-[75vw] rounded-[2vw] shadow-xl' : 'h-16 w-32 rounded-[10%] shadow-lg',
             ]"
         >
             <template v-if="!isOpen">

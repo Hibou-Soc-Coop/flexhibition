@@ -38,9 +38,7 @@ function getCurrentUrlWithoutLanguage() {
                 class="mb-4 rounded-[40%] bg-white"
             />
 
-            <div class="fixed bottom-4 left-0 flex w-full justify-center">
-                <HMenu />
-            </div>
+            <HMenu />
         </div>
     </div>
 </template>

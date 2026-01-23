@@ -23,6 +23,13 @@
         },
         "enter": {
             "Enter": "ENTRA"
+        },
+        "credits": {
+            "production": "Realizzazato da",
+            "direction": "Finanziato da"
+        },
+        "screenOrientation": {
+            "warning": "Questa applicazione è ottimizzata per l’uso in orientamento verticale. La invitiamo a utilizzare un dispositivo in modalità verticale o a ruotare lo schermo."
         }
     },
     "en": {
@@ -49,6 +56,13 @@
         },
         "enter": {
             "Enter": "ENTER"
+        },
+        "credits": {
+            "production": "Produced by",
+            "direction": "Funded by"
+        },
+        "screenOrientation": {
+            "warning": "This application is optimized for vertical orientation. We invite you to use a device in vertical mode or rotate the screen."
         }
     },
     "fr": {
@@ -75,6 +89,13 @@
         },
         "enter": {
             "Enter": "ENTRER"
+        },
+        "credits": {
+            "production": "Réalisé par",
+            "direction": "Financé par"
+        },
+        "screenOrientation": {
+            "warning": "Cette application est optimisée pour une orientation verticale. Nous vous invitons à utiliser un appareil en mode vertical ou à faire pivoter l'écran."
         }
     }
 }

@@ -103,39 +103,43 @@ segni diventano palazzi, finestre, strade, macchine, persone piccolissime blocca
         for ($i = 0; $i <= count($postNames) - 1; $i++) {
 
 
-        $imageSourcePath = resource_path("assets/collections/$i.png");
+            $imageSourcePath = resource_path("assets/collections/$i.png");
 
-        // Create temp files for each language to avoid file locking/moving issues
-        $imageTempPathIt = tempnam(sys_get_temp_dir(), 'it');
-        copy($imageSourcePath, $imageTempPathIt);
-        $imageFileIt = new UploadedFile($imageTempPathIt, "$i.png", 'image/png', null, true);
+            // Create temp files for each language to avoid file locking/moving issues
+            $imageTempPathIt = tempnam(sys_get_temp_dir(), 'it');
+            copy($imageSourcePath, $imageTempPathIt);
+            $imageFileIt = new UploadedFile($imageTempPathIt, "$i.png", 'image/png', null, true);
 
-        $imageTempPathEn = tempnam(sys_get_temp_dir(), 'en');
-        copy($imageSourcePath, $imageTempPathEn);
-        $imageFileEn = new UploadedFile($imageTempPathEn, "$i.png", 'image/png', null, true);
-        $imageMedia = $mediaService->createMedia(
-            'image',
-            ['it' => $imageFileIt, 'en' => $imageFileEn],
-            ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i],
-            ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official image of the artwork $i"]
-        );
+            $imageTempPathEn = tempnam(sys_get_temp_dir(), 'en');
+            copy($imageSourcePath, $imageTempPathEn);
+            $imageFileEn = new UploadedFile($imageTempPathEn, "$i.png", 'image/png', null, true);
+            $imageMedia = $mediaService->createMedia(
+                'image',
+                ['it' => $imageFileIt, 'en' => $imageFileEn],
+                ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i],
+                ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official image of the artwork $i"]
+            );
 
-        $audioSourcePath = resource_path("assets/collections/$i.mp3");
+            $audioSourcePath = resource_path("assets/collections/$i.mp3");
 
-        // Create temp files for each language to avoid file locking/moving issues
-        $audioTempPathIt = tempnam(sys_get_temp_dir(), 'it');
-        copy($audioSourcePath, $audioTempPathIt);
-        $audioFileIt = new UploadedFile($audioTempPathIt, "$i.mp3", 'audio/mpeg', null, true);
+            // Create temp files for each language to avoid file locking/moving issues
+            $audioTempPathIt = tempnam(sys_get_temp_dir(), 'it');
+            copy(resource_path("assets/collections/$i.mp3"), $audioTempPathIt);
+            $audioFileIt = new UploadedFile($audioTempPathIt, "$i.mp3", 'audio/mpeg', null, true);
 
-        $audioTempPathEn = tempnam(sys_get_temp_dir(), 'en');
-        copy($audioSourcePath, $audioTempPathEn);
-        $audioFileEn = new UploadedFile($audioTempPathEn, "$i.mp3", 'audio/mpeg', null, true);
-        $audioMedia = $mediaService->createMedia(
-            'audio',
-            ['it' => $audioFileIt, 'en' => $audioFileEn],
-            ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i],
-            ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official audio of the artwork $i"]
-        );
+            $audioTempPathEn = tempnam(sys_get_temp_dir(), 'en');
+            copy(resource_path("assets/collections/$i-en.mp3"), $audioTempPathEn);
+            $audioFileEn = new UploadedFile($audioTempPathEn, "$i.mp3", 'audio/mpeg', null, true);
+
+            $audioTempPathFr = tempnam(sys_get_temp_dir(), 'fr');
+            copy(resource_path("assets/collections/$i-fr.mp3"), $audioTempPathFr);
+            $audioFileFr = new UploadedFile($audioTempPathFr, "$i.mp3", 'audio/mpeg', null, true);
+            $audioMedia = $mediaService->createMedia(
+                'audio',
+                ['it' => $audioFileIt, 'en' => $audioFileEn, 'fr' => $audioFileFr],
+                ['it' => 'Opera_' . $i, 'en' => 'Artwork_' . $i, 'fr' => 'Oeuvre_' . $i],
+                ['it' => "Immagine ufficiale dell'opera $i", 'en' => "Official audio of the artwork $i", 'fr' => "Audio officiel de l'oeuvre $i"]
+            );
 
             $post = Post::create([
                 'name' => [

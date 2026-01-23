@@ -29,7 +29,7 @@ function changeLanguage(code: string) {
 }
 </script>
 <template>
-    <div class="flex flex-col items-center justify-center gap-4 bg-white p-4">
+    <div class="flex z-10 flex-col items-center justify-center gap-4 bg-white p-4">
         <Button class="relative h-8 w-20 rounded-full text-xl uppercase" @click="rotate" variant="outline">
             {{ locale }}
             <span>
