@@ -8,13 +8,13 @@ import museumRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
 import { MuseumData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
+import museumsRoutes from '@/routes/museums';
 
 const props = defineProps<{ museum: MuseumData }>();
-
+console.log("Museum Props:", props.museum);
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language;
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Museo', href: museumRoutes.index().url },
     { title: 'Dettaglio', href: '#' },
@@ -32,7 +32,7 @@ const deleteMuseum = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Dettaglio Museo">
             <template #button>
-                <Button :href="museumRoutes.edit.url(props.museum.id)" color-scheme="edit" class="mr-2">
+                <Button @click="router.visit(museumsRoutes.edit.url(props.museum.id))" color-scheme="edit" class="mr-2">
                     Modifica Museo
                 </Button>
                 <Button @click="deleteMuseum" color-scheme="delete">
@@ -42,10 +42,10 @@ const deleteMuseum = () => {
             <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
                 <div class="rounded-lg border p-4 shadow">
                     <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
-                    <div class="overflow-hidden rounded-md border border-gray-300">
+                    <div class="overflow-hidden rounded-md border border-gray-300 max-h-80">
                         <img
                             v-if="props.museum.logo.url[primaryLanguage.code]"
-                            :src="props.museum.logo.url[primaryLanguage.code]"
+                            :src="`/storage/${props.museum.logo.url[primaryLanguage.code]}`"
                             :alt="props.museum.logo.title[primaryLanguage.code]"
                             class="h-full w-full object-cover"
                         />
@@ -55,8 +55,8 @@ const deleteMuseum = () => {
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                     <Label class="block text-lg font-semibold"> Audio Museo </Label>
                     <audio
-                        v-if="props.museum.audio.url[primaryLanguage.code]"
-                        :src="props.museum.audio.url[primaryLanguage.code]"
+                        v-if="props.museum.audio?.url[primaryLanguage.code]"
+                        :src="`/storage/${props.museum.audio.url[primaryLanguage.code] || ''}`"
                         controls
                         class="mt-2 w-full"
                     />
@@ -83,21 +83,21 @@ const deleteMuseum = () => {
                                 {{ props.museum.name[language.code] }}
                             </p>
                             <Label class="mb-4 text-base font-semibold"> Descrizione Museo - {{ language.name }} </Label>
-                            <p class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input">
-                                {{ props.museum.description[language.code] }}
-                            </p>
+                            <div class="mb-2 flex min-h-15 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input"
+                                v-html="props.museum.description[language.code] || '-'">
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </div>
                 <div class="col-span-2 rounded-lg border p-4 shadow">
-                    <Label class="mb-4 text-lg font-semibold"> Immagini del Museo </Label>
+                    <Label class="mb-4 text-lg font-semibold"> Immagini del Museo</Label>
                     <div class="grid grid-cols-5 gap-4">
                         <div
                             v-for="(image, index) in Object.values(props.museum.images)"
                             :key="index"
                             class="aspect-square w-full overflow-hidden rounded-md border border-gray-300"
                         >
-                            <img :src="image.url[primaryLanguage.code]" :alt="image.title[primaryLanguage.code]" class="h-full w-full object-cover" />
+                            <img :src="`/storage/${image.url[primaryLanguage.code]}`" :alt="image.title[primaryLanguage.code]" class="h-full w-full object-cover" />
                         </div>
                     </div>
                 </div>

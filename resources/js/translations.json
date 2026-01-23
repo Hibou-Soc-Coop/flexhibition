@@ -1,0 +1,101 @@
+{
+    "it": {
+        "intro": {
+            "Introduction": "Il Museo conserva la più importante collezione al mondo delle opere di Costantino Nivola tra sculture e dipinti, più di 200 opere acquisite attraverso successive donazioni. La scelta iniziale, compiuta dalla vedova dell’artista Ruth Guggenheim, ha privilegiato l’opera scultorea di Nivola e particolarmente la fase finale del suo percorso, caratterizzata da un ritorno alla statuaria – con la serie delle Madri e delle Vedove – e ai materiali nobili della scultura tradizionale"
+        },
+        "collection": {
+            "title": "Collezione"
+        },
+        "menu": {
+            "menu": "MENU",
+            "home": "HOME",
+            "collection": "COLLEZIONE",
+            "credits": "CREDITI"
+        },
+        "listen": {
+            "Listen": "ASCOLTA"
+        },
+        "read": {
+            "Read": "LEGGI"
+        },
+        "close": {
+            "Close": "CHIUDI"
+        },
+        "enter": {
+            "Enter": "ENTRA"
+        },
+        "credits": {
+            "production": "Realizzazato da",
+            "direction": "Finanziato da"
+        },
+        "screenOrientation": {
+            "warning": "Questa applicazione è ottimizzata per l’uso in orientamento verticale. La invitiamo a utilizzare un dispositivo in modalità verticale o a ruotare lo schermo."
+        }
+    },
+    "en": {
+        "intro": {
+            "Introduction": "This museum preserves the world’s most important collection of works by Costantino Nivola, including sculptures and paintings—over 200 pieces acquired through successive donations. The initial selection, made by the artist’s widow, Ruth Guggenheim, focused on Nivola’s sculptural work, particularly the final phase of his career, marked by a return to statuary—with the series Madri and Vedove—and to the noble materials of traditional sculpture."
+        },
+        "collection": {
+            "title": "Collection"
+        },
+        "menu": {
+            "menu": "MENU",
+            "home": "HOME",
+            "collection": "COLLECTION",
+            "credits": "CREDITS"
+        },
+        "listen": {
+            "Listen": "LISTEN"
+        },
+        "read": {
+            "Read": "READ"
+        },
+        "close": {
+            "Close": "CLOSE"
+        },
+        "enter": {
+            "Enter": "ENTER"
+        },
+        "credits": {
+            "production": "Produced by",
+            "direction": "Funded by"
+        },
+        "screenOrientation": {
+            "warning": "This application is optimized for vertical orientation. We invite you to use a device in vertical mode or rotate the screen."
+        }
+    },
+    "fr": {
+        "intro": {
+            "Introduction": "Ce musée conserve la collection la plus importante au monde d'œuvres de Costantino Nivola, comprenant des sculptures et des peintures—plus de 200 pièces acquises par le biais de dons successifs. La sélection initiale, effectuée par la veuve de l'artiste, Ruth Guggenheim, s'est concentrée sur le travail sculptural de Nivola, en particulier la phase finale de sa carrière, marquée par un retour à la statuaire—avec les séries Madri et Vedove—et aux matériaux nobles de la sculpture traditionnelle."
+        },
+        "collection": {
+            "title": "Collection"
+        },
+        "menu": {
+            "menu": "MENU",
+            "home": "ACCUEIL",
+            "collection": "COLLECTION",
+            "credits": "CRÉDITS"
+        },
+        "listen": {
+            "Listen": "ÉCOUTER"
+        },
+        "read": {
+            "Read": "LIRE"
+        },
+        "close": {
+            "Close": "FERMER"
+        },
+        "enter": {
+            "Enter": "ENTRER"
+        },
+        "credits": {
+            "production": "Réalisé par",
+            "direction": "Financé par"
+        },
+        "screenOrientation": {
+            "warning": "Cette application est optimisée pour une orientation verticale. Nous vous invitons à utiliser un appareil en mode vertical ou à faire pivoter l'écran."
+        }
+    }
+}

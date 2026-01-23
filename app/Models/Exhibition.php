@@ -9,20 +9,12 @@ use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
- * @property int|null $museum_id
- * @property int|null $qr_code_id
  * @property array $name
  * @property array|null $description
- * @property array|null $credits
  * @property int|null $audio_id
- * @property \Carbon\CarbonInterface|null $start_date
- * @property \Carbon\CarbonInterface|null $end_date
- * @property bool $is_archived
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  *
- * @property-read Museum|null $museum
- * @property-read QrCode|null $qrCode
  * @property-read Media|null $audio
  */
 class Exhibition extends Model
@@ -35,15 +27,13 @@ class Exhibition extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'museum_id',
-        'qr_code_id',
         'name',
         'description',
-        'credits',
         'audio_id',
         'start_date',
         'end_date',
         'is_archived',
+        'museum_id',
     ];
 
     /**
@@ -54,7 +44,6 @@ class Exhibition extends Model
     public $translatable = [
         'name',
         'description',
-        'credits',
     ];
 
     /**
@@ -67,7 +56,6 @@ class Exhibition extends Model
         return [
             'name' => 'array',
             'description' => 'array',
-            'credits' => 'array',
             'start_date' => 'date',
             'end_date' => 'date',
             'is_archived' => 'boolean',
@@ -80,14 +68,6 @@ class Exhibition extends Model
     public function museum(): BelongsTo
     {
         return $this->belongsTo(Museum::class);
-    }
-
-    /**
-     * Get the QR code for this exhibition.
-     */
-    public function qrCode(): BelongsTo
-    {
-        return $this->belongsTo(QrCode::class);
     }
 
     /**

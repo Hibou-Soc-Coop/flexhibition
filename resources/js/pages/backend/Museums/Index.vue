@@ -13,8 +13,8 @@ const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-
 const props = defineProps<{ museums: MuseumData[], maxMuseum: Number }>();
+console.log('Museums Props: ', props.museums);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -44,11 +44,12 @@ function truncate(text: string | undefined, maxLength: number): string {
             <div class="gap-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 <Card
                        v-for="museum in props.museums"
+                        :key="museum.id"
                        :route="museumsRoutes"
                        :id="museum.id"
                        :title="museum.name[primaryLanguageCode]"
                        :excerpt="truncate(museum.description[primaryLanguageCode], 60)"
-                       :thumbnail="museum.logo.url ? museum.logo.url[primaryLanguageCode] : undefined"></Card>
+                       :thumbnail="museum.logo.url ? `/storage/${museum.logo.url[primaryLanguageCode]}` : '/storage/sample-data/images/placeholder.jpg'"></Card>
                 <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center">
                     No museums found.
                 </div>

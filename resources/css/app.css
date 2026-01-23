@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
@@ -9,6 +10,10 @@
 
 @utility shadow-select {
     box-shadow: 0 0 2px 2px var(--color-flex-select-400);
+}
+*{
+    font-family: "Roboto Condensed", sans-serif;
+    font-style: normal;
 }
 
 @theme inline {

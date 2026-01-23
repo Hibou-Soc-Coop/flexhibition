@@ -9,15 +9,14 @@ use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
- * @property array $title
+ * @property array $name
  * @property array|null $content
+ * @property array|null $description
  * @property int|null $audio_id
- * @property int|null $qr_code_id
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  *
  * @property-read Media|null $audio
- * @property-read QrCode|null $qrCode
  */
 class Post extends Model
 {
@@ -29,10 +28,11 @@ class Post extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'title',
+        'name',
+        'description',
         'content',
         'audio_id',
-        'qr_code_id',
+        'exhibition_id',
     ];
 
     /**
@@ -41,7 +41,8 @@ class Post extends Model
      * @var array<int, string>
      */
     public $translatable = [
-        'title',
+        'name',
+        'description',
         'content',
     ];
 
@@ -53,9 +54,14 @@ class Post extends Model
     protected function casts(): array
     {
         return [
-            'title' => 'array',
+            'name' => 'array',
             'content' => 'array',
+            'description' => 'array',
         ];
+    }
+      public function Exhibition(): BelongsTo
+    {
+        return $this->belongsTo(Exhibition::class, 'exhibition_id');
     }
 
     /**
@@ -64,14 +70,6 @@ class Post extends Model
     public function audio(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'audio_id');
-    }
-
-    /**
-     * Get the QR code for this post.
-     */
-    public function qrCode(): BelongsTo
-    {
-        return $this->belongsTo(QrCode::class);
     }
 
     /**
@@ -85,8 +83,8 @@ class Post extends Model
     /**
      * Get all exhibitions that include this post.
      */
-    public function exhibitions(): BelongsToMany
-    {
-        return $this->belongsToMany(Exhibition::class, 'exhibition_posts');
-    }
+    // public function exhibitions(): BelongsToMany
+    // {
+    //     return $this->belongsToMany(Exhibition::class, 'exhibition_posts');
+    // }
 }

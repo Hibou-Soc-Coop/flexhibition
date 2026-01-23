@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->json('title'); // Campo traducibile
+            $table->json('name'); // Campo traducibile
+            $table->json('description')->nullable(); // Campo traducibile
             $table->json('content')->nullable(); // Campo traducibile
             $table->foreignId('audio_id')->nullable()->constrained('media')->nullOnDelete();
-            $table->foreignId('qr_code_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('exhibition_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
     }

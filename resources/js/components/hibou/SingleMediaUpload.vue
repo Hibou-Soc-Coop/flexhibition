@@ -1,16 +1,25 @@
 <!-- HMediaUploader.vue -->
 <script setup lang="ts">
 import { MAX_AUDIO_SIZE, MAX_IMAGE_HEIGHT, MAX_IMAGE_SIZE, MAX_IMAGE_WIDTH } from '@/constants/mediaSettings';
-import { type MediaData } from '@/types/flexhibition';
+import { type Language, type MediaData } from '@/types/flexhibition';
+import { usePage } from '@inertiajs/vue3';
 import { FileUp, Trash2 } from 'lucide-vue-next';
 import { computed, onUnmounted, ref, watch } from 'vue';
 
 // ====== Props e constants ======
-const props = defineProps<{
-    accept: string; // “image/*”, “audio/*”, ecc.
-    label?: string;
-    isReadonly?: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        accept: string; // “image/*”, “audio/*”, ecc.
+        label?: string;
+        isReadonly?: boolean;
+        currentLang?: string;
+        multiLanguage?: boolean;
+    }>(),
+    {
+        currentLang: 'it',
+        multiLanguage: false,
+    },
+);
 
 const model = defineModel<MediaData | null>();
 
@@ -20,29 +29,33 @@ const emit = defineEmits<{
 }>();
 
 // ====== Stato reattivo ======
+const page = usePage();
+const languages = computed(() => page.props.languages as Language[]);
+
 const fileInput = ref<HTMLInputElement | null>(null);
-const previewUrl = ref<string | undefined>(model.value?.media_preview);
+const localPreviews = ref<Record<string, string>>({});
 const showConfirm = ref(false);
 const isPicking = ref(false);
 const dragActive = ref(false);
-const fileName = ref<string | null>(null);
 const error = ref<string | null>(null);
 
 const isImage = computed(() => props.accept.includes('image'));
 const isAudio = computed(() => props.accept.includes('audio'));
 
+const currentPreview = computed(() => {
+    if (localPreviews.value[props.currentLang]) return localPreviews.value[props.currentLang];
+    return model.value?.url?.[props.currentLang];
+});
+
+const currentFileName = computed(() => {
+    if (model.value?.file?.[props.currentLang]) return model.value.file[props.currentLang].name;
+    if (model.value?.url?.[props.currentLang]) return 'File presente';
+    return null;
+});
+
 /* ----------------------------------------------------------------
  *  WATCHERS
  * ---------------------------------------------------------------- */
-watch(
-    () => model.value,
-    (val) => {
-        if (previewUrl.value && previewUrl.value !== val?.media_preview) {
-            URL.revokeObjectURL(previewUrl.value);
-        }
-        previewUrl.value = val?.media_preview;
-    },
-);
 
 /* ----------------------------------------------------------------
  *  HELPERS
@@ -126,18 +139,24 @@ async function onFileChange(e: Event) {
     }
 
     /* preview */
-    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
-    previewUrl.value = URL.createObjectURL(finalFile);
-    fileName.value = finalFile.name;
+    if (localPreviews.value[props.currentLang]) {
+        URL.revokeObjectURL(localPreviews.value[props.currentLang]);
+    }
+    localPreviews.value[props.currentLang] = URL.createObjectURL(finalFile);
     error.value = null;
 
+    const currentFiles = model.value?.file || {};
+    const currentTitles = model.value?.title || {};
+    const currentUrls = model.value?.url || {};
+
     model.value = {
-        id: null,
-        file: { it: finalFile },
-        url: null,
-        title: { it: finalFile.name },
+        ...model.value,
+        id: model.value?.id || null,
+        file: { ...currentFiles, [props.currentLang]: finalFile },
+        url: { ...currentUrls },
+        title: { ...currentTitles, [props.currentLang]: finalFile.name },
         to_delete: false,
-        media_preview: previewUrl.value,
+        media_preview: localPreviews.value[props.currentLang],
     };
 }
 
@@ -147,13 +166,39 @@ function onRemoveClick() {
 }
 
 function confirmRemove() {
-    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
-    previewUrl.value = undefined;
-    fileName.value = null;
+    if (localPreviews.value[props.currentLang]) {
+        URL.revokeObjectURL(localPreviews.value[props.currentLang]);
+        delete localPreviews.value[props.currentLang];
+    }
     error.value = null;
     showConfirm.value = false;
     if (fileInput.value) fileInput.value.value = '';
-    emit('update:modelValue', null);
+
+    if (model.value) {
+        const newFiles = { ...model.value.file };
+        delete newFiles[props.currentLang];
+
+        const newUrls = { ...model.value.url };
+        if (newUrls) delete newUrls[props.currentLang];
+
+        const newTitles = { ...model.value.title };
+        delete newTitles[props.currentLang];
+
+        const hasFiles = Object.keys(newFiles).length > 0;
+        const hasUrls = Object.keys(newUrls || {}).length > 0;
+
+        if (!hasFiles && !hasUrls) {
+            emit('update:modelValue', null);
+        } else {
+            model.value = {
+                ...model.value,
+                file: newFiles,
+                url: newUrls,
+                title: newTitles,
+                media_preview: undefined,
+            };
+        }
+    }
 }
 
 function cancelRemove() {
@@ -183,7 +228,7 @@ function onDragLeave(e: DragEvent) {
 
 onUnmounted(() => {
     window.removeEventListener('focus', onWindowFocus);
-    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+    Object.values(localPreviews.value).forEach((url) => URL.revokeObjectURL(url));
 });
 </script>
 
@@ -197,7 +242,7 @@ onUnmounted(() => {
     >
         <!-- RIMUOVI -->
         <button
-            v-if="previewUrl && !isReadonly"
+            v-if="currentPreview && !isReadonly"
             type="button"
             class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-white/80 p-2 text-red-600 transition hover:bg-red-100 focus:ring-2 focus:ring-red-400 focus:outline-none"
             aria-label="Rimuovi file"
@@ -211,12 +256,12 @@ onUnmounted(() => {
 
         <!-- PREVIEW / PLACEHOLDER -->
         <div class="flex w-full flex-col items-center justify-center py-4">
-            <template v-if="previewUrl">
-                <img v-if="isImage" :src="previewUrl" alt="Anteprima immagine" class="max-h-48 max-w-full rounded object-contain" />
-                <audio v-else-if="isAudio" :src="previewUrl" controls class="w-full" />
+            <template v-if="currentPreview">
+                <img v-if="isImage" :src="currentPreview" alt="Anteprima immagine" class="max-h-48 max-w-full rounded object-contain" />
+                <audio v-else-if="isAudio" :src="currentPreview" controls class="w-full" />
             </template>
 
-            <template v-if="!previewUrl && !isReadonly">
+            <template v-if="!currentPreview && !isReadonly">
                 <button
                     type="button"
                     aria-label="Carica file"
@@ -236,20 +281,34 @@ onUnmounted(() => {
                     style="pointer-events: none"
                     :class="isPicking ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'"
                 >
-                    <span v-if="isImage">Nessun logo caricato.<br />Clicca o trascina qui per caricare.</span>
-                    <span v-else-if="isAudio">Nessun audio caricato.<br />Clicca o trascina qui per caricare.</span>
+                    <template v-if="multiLanguage">
+                        <span v-if="isImage">
+                            Nessuna immagine caricata per
+                            {{ languages.find((lang) => lang.code === currentLang)?.name || currentLang }}.<br />
+                            Clicca o trascina qui per caricare.
+                        </span>
+                        <span v-else-if="isAudio"
+                            >Nessun audio caricato per
+                            {{ languages.find((lang) => lang.code === currentLang)?.name || currentLang }}.<br />
+                            Clicca o trascina qui per caricare.</span
+                        >
+                    </template>
+                    <template v-else>
+                        <span v-if="isImage">Nessun file immagine caricato.<br />Clicca o trascina qui per caricare.</span>
+                        <span v-else-if="isAudio">Nessun file audio caricato.<br />Clicca o trascina qui per caricare.</span>
+                    </template>
                 </div>
             </template>
         </div>
 
         <!-- INFO -->
-        <div v-if="fileName" class="mt-2 text-xs text-gray-500">{{ fileName }}</div>
+        <div v-if="currentFileName" class="mt-2 text-xs text-gray-500">{{ currentFileName }}</div>
         <div v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</div>
 
         <!-- DIALOG CONFERMA -->
         <div v-if="showConfirm" class="absolute inset-0 z-20 flex items-center justify-center bg-black/40">
             <div class="flex flex-col items-center gap-2 rounded bg-white p-4 shadow-lg">
-                <span class="font-semibold text-red-600">Rimuovere il file?</span>
+                <span class="font-semibold text-red-600">Rimuovere il file per {{ currentLang }}?</span>
                 <div class="mt-2 flex gap-2">
                     <button type="button" class="btn btn-sm btn-destructive" @click="confirmRemove" autofocus>Conferma</button>
                     <button type="button" class="btn btn-sm" @click="cancelRemove">Annulla</button>

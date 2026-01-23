@@ -19,7 +19,7 @@ return[
         ],
         'audio' => [
             'max' => 4096,
-        ],        
+        ],
     ],
     'dimensions' => [
         'image' => [
