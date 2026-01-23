@@ -275,40 +275,40 @@ class MuseumController extends Controller
         return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
     }
 
-   public function showMuseum($museumId, $language = 'it')
-    {
-        $museumRecord = Museum::findOrFail($museumId);
+//    public function showMuseum($museumId, $language = 'it')
+//     {
+//         $museumRecord = Museum::findOrFail($museumId);
 
-        $museum = [];
-        $museum['id'] = $museumRecord->id;
-        $museum['name'] = $museumRecord->getTranslations('name');
-        $museum['description'] = $museumRecord->getTranslations('description');
-        $museum['logo'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('url') : null;
-        $museum['audio'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('url') : null;
-        $museum['images'] = $museumRecord->images->map(fn($image) => $image->media ? $image->media->getTranslations('url') : null)->toArray();
+//         $museum = [];
+//         $museum['id'] = $museumRecord->id;
+//         $museum['name'] = $museumRecord->getTranslations('name');
+//         $museum['description'] = $museumRecord->getTranslations('description');
+//         $museum['logo'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('url') : null;
+//         $museum['audio'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('url') : null;
+//         $museum['images'] = $museumRecord->images->map(fn($image) => $image->media ? $image->media->getTranslations('url') : null)->toArray();
 
-        return Inertia::render('frontend/Museum', [
-            'museum' => $museum,
-            'language' => $language,
-        ]);
-    }
+//         return Inertia::render('frontend/Museum', [
+//             'museum' => $museum,
+//             'language' => $language,
+//         ]);
+//     }
 
 
-    private function createMediaFromData(array $data, string $type): ?Media
-    {
-        if (empty($data['file'])) {
-            return null;
-        }
+//     private function createMediaFromData(array $data, string $type): ?Media
+//     {
+//         if (empty($data['file'])) {
+//             return null;
+//         }
 
-        return $this->mediaService->createMedia(
-            $type,
-            $data['file'],
-            $data['title'],
-            $data['description'] ?? null,
-            'public',
-            'media'
-        );
-    }
+//         return $this->mediaService->createMedia(
+//             $type,
+//             $data['file'],
+//             $data['title'],
+//             $data['description'] ?? null,
+//             'public',
+//             'media'
+//         );
+//     }
 
     /**
      * Gestisce l'aggiornamento di un media (logo o audio).

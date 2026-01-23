@@ -8,7 +8,7 @@ use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::redirect('/', '/museum/1/it');
+Route::redirect('/', '/login');
 
 Route::prefix('backend')->group(function () {
     Route::get('/', function () {
@@ -26,19 +26,19 @@ Route::prefix('backend')->group(function () {
     Route::resource('posts', PostController::class)->middleware(['auth', 'verified']);
 });
 
-Route::get('museum/{museumId}/{language?}', function ($museumId = null, $language = 'it') {
-    return Inertia::render('frontend/Museum', [
-        'museumId' => $museumId,
-        'language' => $language,
-        'skipAnimation' => request()->boolean('skipAnimation')
-    ]);
-})->name('museum')->where('language', '[a-z]{2}')->where('museumId', '[0-9]+');
-Route::get('museum/{museumId}/collections/{language?}', [ExhibitionController::class, 'showExhibitions'])->name('collections.index')->where('language', '[a-z]{2}');
-Route::get('museum/{museumId}/collections/{collectionId}/{language?}', [PostController::class, 'showPosts'])->name('post')->where('language', '[a-z]{2}');
-Route::get('museum/{museumId}/collections/{collectionId}/posts/{postId}/{language?}', [PostController::class, 'showPostDetail'])->name('post.detail')->where('language', '[a-z]{2}');
-Route::get('credits/{language?}', function ($language = 'it') {
-    return Inertia::render('frontend/Credits', ['language' => $language]);
-})->name('credits')->where('language', '[a-z]{2}');
+// Route::get('museum/{museumId}/{language?}', function ($museumId = null, $language = 'it') {
+//     return Inertia::render('frontend/Museum', [
+//         'museumId' => $museumId,
+//         'language' => $language,
+//         'skipAnimation' => request()->boolean('skipAnimation')
+//     ]);
+// })->name('museum')->where('language', '[a-z]{2}')->where('museumId', '[0-9]+');
+// Route::get('museum/{museumId}/collections/{language?}', [ExhibitionController::class, 'showExhibitions'])->name('collections.index')->where('language', '[a-z]{2}');
+// Route::get('museum/{museumId}/collections/{collectionId}/{language?}', [PostController::class, 'showPosts'])->name('post')->where('language', '[a-z]{2}');
+// Route::get('museum/{museumId}/collections/{collectionId}/posts/{postId}/{language?}', [PostController::class, 'showPostDetail'])->name('post.detail')->where('language', '[a-z]{2}');
+// Route::get('credits/{language?}', function ($language = 'it') {
+//     return Inertia::render('frontend/Credits', ['language' => $language]);
+// })->name('credits')->where('language', '[a-z]{2}');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

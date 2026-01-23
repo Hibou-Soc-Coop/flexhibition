@@ -248,24 +248,24 @@ class ExhibitionController extends Controller
         return redirect()->route('exhibitions.index')->with('success', 'Exhibition deleted successfully.');
     }
 
-    public function showExhibitions($museumId)
-    {
-        $allExhibitionRecords = Exhibition::where('museum_id', $museumId)->get();
-        $exhibitions = [];
-        foreach ($allExhibitionRecords as $exhibitionRecord) {
-            $exhibition = [];
-            $exhibition['id'] = $exhibitionRecord->id;
-            $exhibition['name'] = $exhibitionRecord->getTranslations('name');
-            $exhibition['description'] = $exhibitionRecord->getTranslations('description');
-            $exhibition['start_date'] = $exhibitionRecord->start_date?->format('Y-m-d');
-            $exhibition['end_date'] = $exhibitionRecord->end_date?->format('Y-m-d');
-            $exhibition['audio'] = $exhibitionRecord->audio?->getTranslations('title');
-            $exhibition['images'] = $exhibitionRecord->images?->map(fn($image) => $image->getTranslations('url'));
-            $exhibition['museum_id'] = $museumId;
-            $exhibitions[] = $exhibition;
-        }
-        return Inertia::render('frontend/Collections', ['exhibitions' => $exhibitions]);
-    }
+    // public function showExhibitions($museumId)
+    // {
+    //     $allExhibitionRecords = Exhibition::where('museum_id', $museumId)->get();
+    //     $exhibitions = [];
+    //     foreach ($allExhibitionRecords as $exhibitionRecord) {
+    //         $exhibition = [];
+    //         $exhibition['id'] = $exhibitionRecord->id;
+    //         $exhibition['name'] = $exhibitionRecord->getTranslations('name');
+    //         $exhibition['description'] = $exhibitionRecord->getTranslations('description');
+    //         $exhibition['start_date'] = $exhibitionRecord->start_date?->format('Y-m-d');
+    //         $exhibition['end_date'] = $exhibitionRecord->end_date?->format('Y-m-d');
+    //         $exhibition['audio'] = $exhibitionRecord->audio?->getTranslations('title');
+    //         $exhibition['images'] = $exhibitionRecord->images?->map(fn($image) => $image->getTranslations('url'));
+    //         $exhibition['museum_id'] = $museumId;
+    //         $exhibitions[] = $exhibition;
+    //     }
+    //     return Inertia::render('frontend/Collections', ['exhibitions' => $exhibitions]);
+    // }
 
 
     private function createMediaFromData(array $data, string $type): ?Media

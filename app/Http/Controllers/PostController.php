@@ -258,59 +258,59 @@ class PostController extends Controller
             return back()->withErrors(['error' => 'Errore durante l\'eliminazione del post: ' . $e->getMessage()]);
         }
     }
-    public function showPosts($museumId, $exhibitionId, $language = 'it')
-    {
-        $allPostsRecord = Post::where('exhibition_id', $exhibitionId)->get();
-        $posts = [];
-        foreach ($allPostsRecord as $postRecord) {
-            $post = [];
-            $post['id'] = $postRecord->id;
-            $post['name'] = $postRecord->getTranslations('name');
-            $post['description'] = $postRecord->getTranslations('description');
-            $post['content'] = $postRecord->getTranslations('content');
-            $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-            $post['images'] = $postRecord->images?->map(function ($image) {
-                return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-            });
-            $post['exhibition_id'] = $exhibitionId;
-            $post['museum_id'] = $museumId;
-            $posts[] = $post;
-        }
-        return Inertia::render('frontend/Posts', ['posts' => $posts]);
-    }
-    public function showPostDetail($museumId, $collectionId, $postId, $language = 'it')
-    {
-        $allPostsRecord = Post::where('exhibition_id', $collectionId)->get();
-        $posts = [];
-        foreach ($allPostsRecord as $postRecord) {
-            $post = [];
-            $post['id'] = $postRecord->id;
-            $post['name'] = $postRecord->getTranslations('name');
-            $post['description'] = $postRecord->getTranslations('description');
-            $post['content'] = $postRecord->getTranslations('content');
-            $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-            $post['images'] = $postRecord->images?->map(function ($image) {
-                return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-            });
-            $post['exhibition_id'] = $collectionId;
-            $post['museum_id'] = $museumId;
-            $posts[] = $post;
-        }
-        $postRecord = Post::findOrFail($postId);
-        $post = [];
-        $post['id'] = $postRecord->id;
-        $post['name'] = $postRecord->getTranslations('name');
-        $post['description'] = $postRecord->getTranslations('description');
-        $post['content'] = $postRecord->getTranslations('content');
-        $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-        $post['images'] = $postRecord->images?->map(function ($image) {
-            return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-        });
-        $post['exhibition_id'] = $postRecord->exhibition_id;
-        $post['museum_id'] = $museumId;
+    // public function showPosts($museumId, $exhibitionId, $language = 'it')
+    // {
+    //     $allPostsRecord = Post::where('exhibition_id', $exhibitionId)->get();
+    //     $posts = [];
+    //     foreach ($allPostsRecord as $postRecord) {
+    //         $post = [];
+    //         $post['id'] = $postRecord->id;
+    //         $post['name'] = $postRecord->getTranslations('name');
+    //         $post['description'] = $postRecord->getTranslations('description');
+    //         $post['content'] = $postRecord->getTranslations('content');
+    //         $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
+    //         $post['images'] = $postRecord->images?->map(function ($image) {
+    //             return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
+    //         });
+    //         $post['exhibition_id'] = $exhibitionId;
+    //         $post['museum_id'] = $museumId;
+    //         $posts[] = $post;
+    //     }
+    //     return Inertia::render('frontend/Posts', ['posts' => $posts]);
+    // }
+    // public function showPostDetail($museumId, $collectionId, $postId, $language = 'it')
+    // {
+    //     $allPostsRecord = Post::where('exhibition_id', $collectionId)->get();
+    //     $posts = [];
+    //     foreach ($allPostsRecord as $postRecord) {
+    //         $post = [];
+    //         $post['id'] = $postRecord->id;
+    //         $post['name'] = $postRecord->getTranslations('name');
+    //         $post['description'] = $postRecord->getTranslations('description');
+    //         $post['content'] = $postRecord->getTranslations('content');
+    //         $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
+    //         $post['images'] = $postRecord->images?->map(function ($image) {
+    //             return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
+    //         });
+    //         $post['exhibition_id'] = $collectionId;
+    //         $post['museum_id'] = $museumId;
+    //         $posts[] = $post;
+    //     }
+    //     $postRecord = Post::findOrFail($postId);
+    //     $post = [];
+    //     $post['id'] = $postRecord->id;
+    //     $post['name'] = $postRecord->getTranslations('name');
+    //     $post['description'] = $postRecord->getTranslations('description');
+    //     $post['content'] = $postRecord->getTranslations('content');
+    //     $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
+    //     $post['images'] = $postRecord->images?->map(function ($image) {
+    //         return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
+    //     });
+    //     $post['exhibition_id'] = $postRecord->exhibition_id;
+    //     $post['museum_id'] = $museumId;
 
-        return Inertia::render('frontend/Post', ['post' => $post, 'allPosts' => $posts]);
-    }
+    //     return Inertia::render('frontend/Post', ['post' => $post, 'allPosts' => $posts]);
+    // }
 
     /**
      * Create media from request data.
