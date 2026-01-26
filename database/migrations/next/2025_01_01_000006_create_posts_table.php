@@ -12,7 +12,8 @@ return new class extends Migration {
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->json('title'); // Campo traducibile
+            $table->json('name'); // Campo traducibile
+            $table->json('description')->nullable(); // Campo traducibile
             $table->json('content')->nullable(); // Campo traducibile
             $table->timestamps();
         });

@@ -3,6 +3,13 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
+import svgLoader from 'vite-svg-loader';
+import { visualizer } from 'rollup-plugin-visualizer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 
 export default defineConfig({
     plugins: [
@@ -15,6 +22,7 @@ export default defineConfig({
         wayfinder({
             formVariants: true,
         }),
+        svgLoader(),
         vue({
             template: {
                 transformAssetUrls: {
@@ -23,5 +31,31 @@ export default defineConfig({
                 },
             },
         }),
+        visualizer({
+            template: 'treemap', // or sunburst
+            open: false,
+            gzipSize: true,
+            brotliSize: true,
+            filename: 'analyse.html', // will be saved in project's root
+        }),
     ],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'resources/js'),
+            '@assets': path.resolve(__dirname, 'resources/assets/'),
+            '@storage': path.resolve(__dirname, 'storage/app/public/'),
+            '@routes': path.resolve(__dirname, 'resources/js/routes'),
+        },
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+    },
 });

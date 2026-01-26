@@ -182,7 +182,7 @@ class MuseumController extends Controller
             'images' => $museumImages,
         ];
 
-        return Inertia::render('backend/Museums/Show', [
+        return Inertia::render('backend/Museums/Edit', [
             'museum' => $museumData,
         ]);
     }
@@ -275,21 +275,40 @@ class MuseumController extends Controller
         return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
     }
 
-    private function createMediaFromData(array $data, string $type): ?Media
-    {
-        if (empty($data['file'])) {
-            return null;
-        }
+//    public function showMuseum($museumId, $language = 'it')
+//     {
+//         $museumRecord = Museum::findOrFail($museumId);
 
-        return $this->mediaService->createMedia(
-            $type,
-            $data['file'],
-            $data['title'],
-            $data['description'] ?? null,
-            'public',
-            'media'
-        );
-    }
+//         $museum = [];
+//         $museum['id'] = $museumRecord->id;
+//         $museum['name'] = $museumRecord->getTranslations('name');
+//         $museum['description'] = $museumRecord->getTranslations('description');
+//         $museum['logo'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('url') : null;
+//         $museum['audio'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('url') : null;
+//         $museum['images'] = $museumRecord->images->map(fn($image) => $image->media ? $image->media->getTranslations('url') : null)->toArray();
+
+//         return Inertia::render('frontend/Museum', [
+//             'museum' => $museum,
+//             'language' => $language,
+//         ]);
+//     }
+
+
+//     private function createMediaFromData(array $data, string $type): ?Media
+//     {
+//         if (empty($data['file'])) {
+//             return null;
+//         }
+
+//         return $this->mediaService->createMedia(
+//             $type,
+//             $data['file'],
+//             $data['title'],
+//             $data['description'] ?? null,
+//             'public',
+//             'media'
+//         );
+//     }
 
     /**
      * Gestisce l'aggiornamento di un media (logo o audio).

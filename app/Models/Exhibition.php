@@ -28,6 +28,7 @@ class Exhibition extends Model
         'start_date',
         'end_date',
         'is_archived',
+        'museum_id',
     ];
 
     /**
@@ -38,7 +39,6 @@ class Exhibition extends Model
     public $translatable = [
         'name',
         'description',
-        'credits',
     ];
 
     /**

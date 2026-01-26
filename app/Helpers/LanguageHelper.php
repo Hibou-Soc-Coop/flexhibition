@@ -2,13 +2,13 @@
 namespace App\Helpers;
 
 use App\Models\Language;
-use App\Facades\Setting;
+use App\Models\Setting;
 
 class LanguageHelper
 {
     public static function getPrimaryLanguage(): Language | null
     {
-    $primaryLanguageCode = env('APP_FALLBACK_LOCALE') ?? 'it';
+        $primaryLanguageCode = Setting::where('key', 'primary_language')->value('value') ?? env('APP_FALLBACK_LOCALE');
         $primaryLanguage = $primaryLanguageCode
             ? Language::where('code', $primaryLanguageCode)->first()
             : null;

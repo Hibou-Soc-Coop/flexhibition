@@ -83,7 +83,7 @@ const isAudio = computed(() =>
                 v-if="isImage"
                 :src="thumbnail"
                 :alt="title"
-                class="h-auto w-full rounded-md border object-contain"
+                class="h-auto w-full rounded-md border object-contain max-h-60"
             />
             <svg v-if="isAudio" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                 <!-- !Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc. -->

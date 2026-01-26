@@ -1,0 +1,10 @@
+[
+  {
+    "type": "sqlite",
+    "path": "c:\\Users\\Leon\\Documents\\repos\\flexhibition\\database\\database.sqlite"
+  },
+  {
+    "type": "sqlite",
+    "path": "e:\\New folder\\database.sqlite"
+  }
+]
