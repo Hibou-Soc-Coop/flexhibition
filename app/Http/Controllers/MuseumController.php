@@ -19,7 +19,6 @@ class MuseumController extends Controller
     {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
         $primaryLanguageCode = $primaryLanguage->code;
-        //$maxMuseums = Settings::get('max_museum_records');
         $maxMuseums = 2;
 
         $museumRecords = Museum::with('logo')->get();

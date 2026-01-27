@@ -12,7 +12,6 @@ return new class extends Migration {
     {
         Schema::create('exhibitions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('museum_id')->nullable()->constrained()->nullOnDelete();
             $table->json('name'); // Campo traducibile
             $table->json('description')->nullable(); // Campo traducibile
             $table->json('credits')->nullable(); // Campo traducibile
