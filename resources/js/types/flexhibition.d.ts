@@ -44,53 +44,48 @@ export interface MuseumRecord {
     readonly audio_id?: number;
 }
 
+/** Spatie Media Library Object */
+export interface SpatieMedia {
+    id: number;
+    model_type: string;
+    model_id: number;
+    uuid: string;
+    collection_name: string;
+    name: string;
+    file_name: string;
+    mime_type: string;
+    disk: string;
+    conversions_disk: string;
+    size: number;
+    manipulations: any[];
+    custom_properties: {
+        lang?: string;
+        title?: string;
+        description?: string;
+        group_index?: number;
+        [key: string]: any;
+    };
+    generated_conversions: Record<string, boolean>;
+    responsive_images: any[];
+    order_column: number;
+    original_url: string;
+    preview_url: string;
+}
+
 /** Informazioni multilingua su un museo */
 export interface MuseumData {
-    readonly id: string;
+    readonly id: number;
     readonly name: Record<string, string>;
     readonly description: Record<string, string>;
-    readonly logo: {
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    };
-    readonly audio: {
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    }
-    readonly images: Record<string, {
-        id: number;
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    }>;
+    readonly logo: SpatieMedia[];
+    readonly audio: SpatieMedia[];
+    readonly images: SpatieMedia[];
 }
 
 export interface MuseumUploadData extends MuseumData {
-    readonly logo: {
-        id: number | null;
-        file?: Record<string, File>;
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    };
-
-    readonly audio: {
-        id: number | null;
-        file?: Record<string, File>;
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    };
-
-    readonly images: Record<string, {
-        id: number | null;
-        file?: Record<string, File>;
-        url: Record<string, string>;
-        title: Record<string, string>;
-        description?: Record<string, string>;
-    }>;
+    readonly logo: any; // Relaxed for upload form
+    readonly audio: any;
+    readonly images: any;
 }
 
 /** Mostra (dati base, riferimenti a media) */

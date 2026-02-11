@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateMuseumRequest;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use \Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Http\Request;
 
 class MuseumController extends Controller
 {
@@ -17,34 +18,20 @@ class MuseumController extends Controller
      */
     public function index()
     {
-        $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $primaryLanguageCode = $primaryLanguage->code;
         //$maxMuseums = Settings::get('max_museum_records');
         $maxMuseums = 2;
 
-        $museumRecords = Museum::with('logo')->get();
+        $museumRecords = Museum::with('media')->get();
 
         $museums = [];
 
+        /** @var Museum $museumRecord */
         foreach ($museumRecords as $museumRecord) {
             $museum = [];
             $museum['id'] = $museumRecord->id;
             $museum['name'] = $museumRecord->getTranslations('name');
             $museum['description'] = $museumRecord->getTranslations('description');
-            $museum['logo']['url'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('url') : null;
-            $museum['logo']['title'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('title') : null;
-            $museum['logo']['description'] = $museumRecord->logo ? $museumRecord->logo->getTranslations('description') : null;
-            $museum['audio']['url'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('url') : null;
-            $museum['audio']['title'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('title') : null;
-            $museum['audio']['description'] = $museumRecord->audio ? $museumRecord->audio->getTranslations('description') : null;
-
-            $museum['images'] = $museumRecord->images->map(function ($image) use ($primaryLanguageCode) {
-                return [
-                    'media_url' => $image->media ? $image->media->media_url : null,
-                    'title' => $image->media ? $image->media->title : null,
-                    'description' => $image->media ? $image->media->description : null,
-                ];
-            })->toArray();
+            $museum['logo'] = $museumRecord->getFirstMediaUrl('logo', 'thumb');
 
             $museums[] = $museum;
         }
@@ -75,6 +62,7 @@ class MuseumController extends Controller
      */
     public function store(StoreMuseumRequest $request)
     {
+        //        dd($request->all());
         $data = $request->validated();
 
         DB::beginTransaction();

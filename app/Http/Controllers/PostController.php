@@ -4,23 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Exhibition;
-use App\Models\Media;
-use App\Models\QrCode;
 use App\Helpers\LanguageHelper;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
-// use App\Http\Requests\UpdatePostRequest;
-use App\Services\MediaService;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class PostController extends Controller
 {
-    public function __construct(
-        protected MediaService $mediaService
-    ) {
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -29,28 +21,19 @@ class PostController extends Controller
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
         $primaryLanguageCode = $primaryLanguage->code;
 
-        $postRecords = Post::with(['exhibition'])->get();
+        $postRecords = Post::with(['exhibition', 'media'])->get();
 
         $posts = [];
 
+        /** @var Post $postRecord */
         foreach ($postRecords as $postRecord) {
             $post = [];
             $post['id'] = $postRecord->id;
             $post['name'] = $postRecord->getTranslations('name');
             $post['description'] = $postRecord->getTranslations('description');
             $post['content'] = $postRecord->getTranslations('content');
-            $post['audio']['url'] = $postRecord->audio ? $postRecord->audio->getTranslations('url') : [];
-            $post['audio']['title'] = $postRecord->audio ? $postRecord->audio->getTranslations('title') : [];
-            $post['audio']['description'] = $postRecord->audio ? $postRecord->audio->getTranslations('description') : [];
-
-            $post['images'] = $postRecord->images->map(function ($image) {
-                return [
-                    'url' => $image->getTranslations('url'),
-                    'title' => $image->getTranslations('title'),
-                    'description' => $image->getTranslations('description'),
-                ];
-            })->toArray();
             $post['exhibition_id'] = $postRecord->exhibition_id;
+            $post['exhibition_name'] = $postRecord->exhibition ? ($postRecord->exhibition->getTranslations('name')[$primaryLanguageCode] ?? '') : '';
 
             $posts[] = $post;
         }
@@ -60,23 +43,18 @@ class PostController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-
         $exhibitions = Exhibition::all();
         $exhibitionsData = [];
         foreach ($exhibitions as $exhibition) {
             $exhibitionData = [];
             $exhibitionData['id'] = $exhibition->id;
-            $exhibitionData['name'] = [
-                $primaryLanguage->code => $exhibition->getTranslation('name', $primaryLanguage->code),
-            ];
+            $exhibitionData['name'] = $exhibition->getTranslations('name');
             $exhibitionsData[] = $exhibitionData;
         }
+
         return Inertia::render('backend/Posts/Create', [
             'exhibitions' => $exhibitionsData,
         ]);
@@ -92,30 +70,45 @@ class PostController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create audio media if provided
-            $audioId = isset($data['audio']['file'])
-                ? $this->createMediaFromData($data['audio'], 'audio')?->id
-                : null;
-
             // Create the post
             $post = Post::create([
                 'name' => $data['name'],
                 'description' => $data['description'] ?? [],
                 'content' => $data['content'] ?? [],
-                'audio_id' => $audioId,
                 'exhibition_id' => $data['exhibition_id'] ?? null,
             ]);
 
-            // Handle images
-            if (isset($data['images']) && !empty($data['images'])) {
-                $imageIds = collect($data['images'])
-                    ->map(function($img) {
-                        return $this->createMediaFromData($img, 'image');
-                    })
-                    ->pluck('id')
-                    ->toArray();
+            // Gestione Audio (Multi-file per lingua)
+            if ($request->hasFile('audio.file')) {
+                foreach ($request->file('audio.file') as $langCode => $file) {
+                    $post->addMediaFromRequest("audio.file.{$langCode}")
+                        ->withCustomProperties([
+                            'lang' => $langCode,
+                            'title' => $data['audio']['title'][$langCode] ?? null,
+                            'description' => $data['audio']['description'][$langCode] ?? null,
+                        ])
+                        ->toMediaCollection('audio');
+                }
+            }
 
-                $post->images()->attach($imageIds);
+            // Gestione Immagini Gallery (Array di oggetti multi-file)
+            if (!empty($data['images'])) {
+                foreach ($data['images'] as $index => $imageData) {
+                    $baseKey = "images.{$index}.file";
+
+                    if ($request->hasFile($baseKey)) {
+                        foreach ($request->file($baseKey) as $langCode => $file) {
+                            $post->addMediaFromRequest("{$baseKey}.{$langCode}")
+                                ->withCustomProperties([
+                                    'lang' => $langCode,
+                                    'title' => $imageData['title'][$langCode] ?? null,
+                                    'description' => $imageData['description'][$langCode] ?? null,
+                                    'group_index' => $index
+                                ])
+                                ->toMediaCollection('images');
+                        }
+                    }
+                }
             }
 
             DB::commit();
@@ -127,23 +120,28 @@ class PostController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        $postRecord = Post::findOrFail($id);
-        $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $primaryLanguageCode = $primaryLanguage->code;
+        $postRecord = Post::with('media')->findOrFail($id);
         $exhibitionRecord = Exhibition::find($postRecord->exhibition_id);
+
+        $postName = $postRecord->getTranslations('name');
+        $postDescription = $postRecord->getTranslations('description');
+        $postContent = $postRecord->getTranslations('content');
+
+        $postAudio = $postRecord->getMedia('audio');
+        $postImages = $postRecord->getMedia('images');
+
+        $exhibition = $postRecord->exhibition ? $exhibitionRecord->getTranslations('name') : null;
+
         $postData = [
             'id' => $postRecord->id,
-            'name' => $postRecord->getTranslations('name'),
-            'description' => $postRecord->getTranslations('description'),
-            'content' => $postRecord->getTranslations('content'),
-            'audio' => $postRecord->audio,
-            'images' => $postRecord->images,
-            'exhibition_name' => $postRecord->exhibition ? $exhibitionRecord->getTranslation('name', $primaryLanguageCode) : null,
+            'name' => $postName,
+            'description' => $postDescription,
+            'content' => $postContent,
+            'audio' => $postAudio,
+            'images' => $postImages,
+            'exhibition_name' => $exhibition,
         ];
 
         return Inertia::render('backend/Posts/Show', [
@@ -151,23 +149,29 @@ class PostController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $primaryLanguageCode = $primaryLanguage->code;
+        $postRecord = Post::with('media')->findOrFail($id);
+        $exhibitionRecord = Exhibition::find($postRecord->exhibition_id);
 
-        $postRecord = Post::with(['exhibition'])->findOrFail($id);
+        $postName = $postRecord->getTranslations('name');
+        $postDescription = $postRecord->getTranslations('description');
+        $postContent = $postRecord->getTranslations('content');
+
+        $postAudio = $postRecord->getMedia('audio');
+        $postImages = $postRecord->getMedia('images');
+
+        $exhibition = $postRecord->exhibition ? $exhibitionRecord->getTranslations('name') : null;
 
         $postData = [
             'id' => $postRecord->id,
-            'name' => $postRecord->getTranslations('name'),
-            'description' => $postRecord->getTranslations('description'),
-            'content' => $postRecord->getTranslations('content'),
-            'audio' => $postRecord->audio,
-            'images' => $postRecord->images,
+            'name' => $postName,
+            'description' => $postDescription,
+            'content' => $postContent,
+            'audio' => $postAudio,
+            'images' => $postImages,
+            'exhibition_name' => $exhibition,
             'exhibition_id' => $postRecord->exhibition_id,
         ];
 
@@ -188,247 +192,130 @@ class PostController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdatePostRequest $request, string $id)
     {
         $data = $request->validated();
         $post = Post::findOrFail($id);
+
         DB::beginTransaction();
-        try{
+        try {
             $post->update([
-                'name' => $data['name'],
-                'description' => $data['description'] ?? [],
-                'content' => $data['content'] ?? [],
-                'exhibition_id' => $data['exhibition_id'] ?? null,
+                'name' => $data['name'] ?? $post->name,
+                'description' => $data['description'] ?? $post->description,
+                'content' => $data['content'] ?? $post->content,
+                'exhibition_id' => $data['exhibition_id'] ?? $post->exhibition_id,
             ]);
-            $audioId = $this->handleMediaUpdate(
-                $data['audio'] ?? null,
-                $post->audio_id,
-                'audio'
-            );
-            if ($audioId !== $post->audio_id) {
-                $post->update(['audio_id' => $audioId]);
+
+            // Gestione Audio
+            if (isset($data['audio'])) {
+                $this->syncLocalizedMedia($post, 'audio', $data['audio'], $request->file('audio.file'));
             }
 
             // Gestione Immagini Gallery
             if (isset($data['images'])) {
-                $this->handleGalleryUpdate($post, $data['images']);
+                foreach ($data['images'] as $index => $imageData) {
+                    // Gestione Cancellazione
+                    if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
+                        $media = Media::find($imageData['id']);
+                        if ($media) {
+                            $media->delete();
+                        }
+                        continue;
+                    }
+
+                    $baseKey = "images.{$index}.file";
+                    $uploadedFiles = $request->file($baseKey) ?? [];
+
+                    // Gestione Nuovi File / Sostituzioni per gruppo
+                    foreach ($uploadedFiles as $langCode => $file) {
+                        $post->addMediaFromRequest("{$baseKey}.{$langCode}")
+                            ->withCustomProperties([
+                                'lang' => $langCode,
+                                'title' => $imageData['title'][$langCode] ?? null,
+                                'description' => $imageData['description'][$langCode] ?? null,
+                                'group_index' => $index // Manteniamo index per raggruppamento logico
+                            ])
+                            ->toMediaCollection('images');
+                    }
+
+                    // Aggiornamento metadati per file esistenti
+                    if (!empty($imageData['id'])) {
+                        $media = Media::find($imageData['id']);
+                        if ($media) {
+                            $lang = $media->getCustomProperty('lang');
+                            if ($lang && isset($imageData['title'][$lang])) {
+                                $media->setCustomProperty('title', $imageData['title'][$lang]);
+                                $media->setCustomProperty('description', $imageData['description'][$lang]);
+                                $media->save();
+                            }
+                        }
+                    }
+                }
             }
 
             DB::commit();
-            return redirect()->route('posts.index')->with('success', 'Post aggiornato con successo.');
 
-
-        }catch (\Exception $e) {
+            return redirect()
+                ->route('posts.index')
+                ->with('success', 'Post aggiornato con successo.');
+        } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->withErrors(['error' => 'Errore durante l\'aggiornamento del post: ' . $e->getMessage()]);
         }
     }
 
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $post = Post::findOrFail($id);
+        $post->delete();
 
-        DB::beginTransaction();
-
-        try {
-            // Delete associated media
-            if ($post->audio_id) {
-                $this->mediaService->deleteMedia($post->audio_id);
-            }
-
-            // Delete associated images
-            foreach ($post->images as $image) {
-                $this->mediaService->deleteMedia($image->id);
-            }
-
-            $post->delete();
-
-            DB::commit();
-
-            return redirect()->route('posts.index')->with('success', 'Post eliminato con successo.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Errore durante l\'eliminazione del post: ' . $e->getMessage()]);
-        }
-    }
-    // public function showPosts($museumId, $exhibitionId, $language = 'it')
-    // {
-    //     $allPostsRecord = Post::where('exhibition_id', $exhibitionId)->get();
-    //     $posts = [];
-    //     foreach ($allPostsRecord as $postRecord) {
-    //         $post = [];
-    //         $post['id'] = $postRecord->id;
-    //         $post['name'] = $postRecord->getTranslations('name');
-    //         $post['description'] = $postRecord->getTranslations('description');
-    //         $post['content'] = $postRecord->getTranslations('content');
-    //         $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-    //         $post['images'] = $postRecord->images?->map(function ($image) {
-    //             return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-    //         });
-    //         $post['exhibition_id'] = $exhibitionId;
-    //         $post['museum_id'] = $museumId;
-    //         $posts[] = $post;
-    //     }
-    //     return Inertia::render('frontend/Posts', ['posts' => $posts]);
-    // }
-    // public function showPostDetail($museumId, $collectionId, $postId, $language = 'it')
-    // {
-    //     $allPostsRecord = Post::where('exhibition_id', $collectionId)->get();
-    //     $posts = [];
-    //     foreach ($allPostsRecord as $postRecord) {
-    //         $post = [];
-    //         $post['id'] = $postRecord->id;
-    //         $post['name'] = $postRecord->getTranslations('name');
-    //         $post['description'] = $postRecord->getTranslations('description');
-    //         $post['content'] = $postRecord->getTranslations('content');
-    //         $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-    //         $post['images'] = $postRecord->images?->map(function ($image) {
-    //             return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-    //         });
-    //         $post['exhibition_id'] = $collectionId;
-    //         $post['museum_id'] = $museumId;
-    //         $posts[] = $post;
-    //     }
-    //     $postRecord = Post::findOrFail($postId);
-    //     $post = [];
-    //     $post['id'] = $postRecord->id;
-    //     $post['name'] = $postRecord->getTranslations('name');
-    //     $post['description'] = $postRecord->getTranslations('description');
-    //     $post['content'] = $postRecord->getTranslations('content');
-    //     $post['audio'] = $postRecord->audio ? collect($postRecord->audio->getTranslations('url'))->map(fn($url) => asset('storage' . $url)) : null;
-    //     $post['images'] = $postRecord->images?->map(function ($image) {
-    //         return collect($image->getTranslations('url'))->map(fn($url) => asset('storage' . $url));
-    //     });
-    //     $post['exhibition_id'] = $postRecord->exhibition_id;
-    //     $post['museum_id'] = $museumId;
-
-    //     return Inertia::render('frontend/Post', ['post' => $post, 'allPosts' => $posts]);
-    // }
-
-    /**
-     * Create media from request data.
-     */
-    private function createMediaFromData(array $data, string $type): ?Media
-    {
-        if (empty($data['file'])) {
-            return null;
-        }
-
-        return $this->mediaService->createMedia(
-            $type,
-            $data['file'],
-            $data['title'],
-            $data['description'] ?? null,
-            'public',
-            'media'
-        );
+        return redirect()->route('posts.index')->with('success', 'Post eliminato con successo.');
     }
 
     /**
-     * Handle media update (create, update, or delete).
+     * Sincronizza i media localizzati (Audio).
      */
-    private function handleMediaUpdate(?array $data, ?int $currentMediaId, string $type): ?int
+    private function syncLocalizedMedia($model, $collection, $data, $files)
     {
-        if (!$data) {
-            return $currentMediaId;
+        // Cancellazione totale
+        if (!empty($data['to_delete'])) {
+            $model->clearMediaCollection($collection);
+            return;
         }
 
-        // If deletion is requested
-        if (!empty($data['to_delete']) && $currentMediaId) {
-            $this->mediaService->deleteMedia($currentMediaId);
-            return null;
-        }
+        $files = $files ?? [];
 
-        // If there's a new file to upload
-        if (!empty($data['file'])) {
-            // If media already exists, update it
-            if ($currentMediaId && !empty($data['id']) && $data['id'] == $currentMediaId) {
-                $this->mediaService->updateMedia(
-                    $currentMediaId,
-                    $data['file'],
-                    $data['title'] ?? null,
-                    $data['description'] ?? null,
-                    'public',
-                    'media'
-                );
-                return $currentMediaId;
-            } else {
-                // Create new media and delete old if exists
-                if ($currentMediaId) {
-                    $this->mediaService->deleteMedia($currentMediaId);
-                }
-                $newMedia = $this->createMediaFromData($data, $type);
-                return $newMedia?->id;
-            }
-        }
-
-        // If only name/description updates without new file
-        if ($currentMediaId && (isset($data['title']) || isset($data['description']))) {
-            $this->mediaService->updateMedia(
-                $currentMediaId,
-                null,
-                $data['title'] ?? null,
-                $data['description'] ?? null,
-                'public',
-                'media'
-            );
-        }
-
-        return $currentMediaId;
-    }
-
-    /**
-     * Handle gallery images update.
-     */
-    private function handleGalleryUpdate(Post $post, array $imagesData): void
-    {
-        $currentImageIds = $post->images()->pluck('media.id')->toArray();
-        $updatedImageIds = [];
-
-        foreach ($imagesData as $imageData) {
-            // If image should be deleted
-            if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
-                $this->mediaService->deleteMedia($imageData['id']);
-                continue;
+        // 1. Gestione nuovi file (Sostituzione per lingua)
+        foreach ($files as $lang => $file) {
+            // Rimuovi media esistente per questa lingua
+            $existing = $model->getMedia($collection, ['lang' => $lang])->first();
+            if ($existing) {
+                $existing->delete();
             }
 
-            // If there's an existing ID
-            if (!empty($imageData['id'])) {
-                // Update if there's a new file or metadata
-                if (!empty($imageData['file']) || isset($imageData['name']) || isset($imageData['description'])) {
-                    $this->mediaService->updateMedia(
-                        $imageData['id'],
-                        $imageData['file'] ?? null,
-                        $imageData['name'] ?? null,
-                        $imageData['description'] ?? null,
-                        'public',
-                        'media'
-                    );
-                }
-                $updatedImageIds[] = $imageData['id'];
-            } elseif (!empty($imageData['file'])) {
-                // Create a new image
-                $newImage = $this->createMediaFromData($imageData, 'image');
-                if ($newImage) {
-                    $updatedImageIds[] = $newImage->id;
-                }
-            }
+            // Aggiungi nuovo
+            $model->addMedia($file)
+                ->withCustomProperties([
+                    'lang' => $lang,
+                    'title' => $data['title'][$lang] ?? null,
+                    'description' => $data['description'][$lang] ?? null
+                ])
+                ->toMediaCollection($collection);
         }
 
-        // Sync images (removes those no longer present)
-        $post->images()->sync($updatedImageIds);
+        // 2. Aggiornamento metadati per lingue senza nuovo file
+        if (isset($data['title'])) {
+            foreach ($data['title'] as $lang => $title) {
+                if (isset($files[$lang]))
+                    continue; // Già gestito sopra
 
-        // Delete media that are no longer associated
-        $imagesToDelete = array_diff($currentImageIds, $updatedImageIds);
-        foreach ($imagesToDelete as $imageId) {
-            $this->mediaService->deleteMedia($imageId);
+                $existing = $model->getMedia($collection, ['lang' => $lang])->first();
+                if ($existing) {
+                    $existing->setCustomProperty('title', $title);
+                    $existing->setCustomProperty('description', $data['description'][$lang] ?? null);
+                    $existing->save();
+                }
+            }
         }
     }
 }

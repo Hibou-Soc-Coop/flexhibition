@@ -25,30 +25,30 @@ class StoreMuseumRequest extends FormRequest
     {
         $languages = Language::all();
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $imageMaxSize = config('mediasettings.sizes.image.max');
-        $imageMimes = config('mediasettings.types.image');
-        $logoWidth = config('mediasettings.dimensions.image.width');
-        $logoHeight = config('mediasettings.dimensions.image.height');
-        $galleryWidth = config('mediasettings.dimensions.gallery.width');
-        $galleryHeight = config('mediasettings.dimensions.gallery.height');
-        $audioMaxSize = config('mediasettings.sizes.audio.max');
-        $audioMimes = config('mediasettings.types.audio');
+        $imageMaxSize = config('media.sizes.image.max');
+        $imageMimes = config('media.types.image');
+        $logoWidth = config('media.dimensions.image.width');
+        $logoHeight = config('media.dimensions.image.height');
+        $galleryWidth = config('media.dimensions.gallery.width');
+        $galleryHeight = config('media.dimensions.gallery.height');
+        $audioMaxSize = config('media.sizes.audio.max');
+        $audioMimes = config('media.types.audio');
 
         $validationRules = [];
 
         foreach ($languages as $language) {
             if ($language->code === $primaryLanguage->code) {
-                $validationRules['name.' . $language->code ] = ['required', 'string', 'max:100'];
+                $validationRules['name.' . $language->code] = ['required', 'string', 'max:100'];
             } else {
-                $validationRules['name.' . $language->code ] = ['nullable', 'string', 'max:100'];
+                $validationRules['name.' . $language->code] = ['nullable', 'string', 'max:100'];
             }
         }
 
         $validationRules['description.*'] = ['nullable', 'string', 'max:2000'];
 
         $validationRules['logo'] = ['nullable', 'array'];
-        $validationRules['logo.id'] = ['nullable', 'integer', 'exists:media,id'];
-        $validationRules['logo.file.*'] = ['nullable', 'image', "mimes:{$imageMimes}", "max:{$imageMaxSize}", "dimensions:max_width={$logoWidth},max_height={$logoHeight}"];
+        $validationRules['logo.id'] = ['nullable', 'integer'];
+        $validationRules['logo.file.*'] = ['nullable', 'image'];
         $validationRules['logo.title'] = ['nullable', 'array'];
         $validationRules['logo.title.*'] = ['nullable', 'string', 'max:100'];
         $validationRules['logo.description'] = ['nullable', 'array'];
@@ -56,8 +56,8 @@ class StoreMuseumRequest extends FormRequest
         $validationRules['logo.to_delete'] = ['nullable', 'boolean'];
 
         $validationRules['audio'] = ['nullable', 'array'];
-        $validationRules['audio.id'] = ['nullable', 'integer', 'exists:media,id'];
-        $validationRules['audio.file.*'] = ['nullable', 'file', "mimes:{$audioMimes}", "max:{$audioMaxSize}"];
+        $validationRules['audio.id'] = ['nullable', 'integer'];
+        $validationRules['audio.file.*'] = ['nullable', 'file'];
         $validationRules['audio.title'] = ['nullable', 'array'];
         $validationRules['audio.title.*'] = ['nullable', 'string', 'max:100'];
         $validationRules['audio.description'] = ['nullable', 'array'];
@@ -65,9 +65,9 @@ class StoreMuseumRequest extends FormRequest
         $validationRules['audio.to_delete'] = ['nullable', 'boolean'];
 
         $validationRules['images'] = ['nullable', 'array'];
-        $validationRules['images.*.id'] = ['nullable', 'integer', 'exists:media,id'];
+        $validationRules['images.*.id'] = ['nullable', 'integer'];
         $validationRules['images.*.file'] = ['nullable', 'array'];
-        $validationRules['images.*.file.*'] = ['nullable', 'image', "mimes:{$imageMimes}", "max:{$imageMaxSize}", "dimensions:max_width={$galleryWidth},max_height={$galleryHeight}"];
+        $validationRules['images.*.file.*'] = ['nullable', 'image'];
         $validationRules['images.*.title'] = ['nullable', 'array'];
         $validationRules['images.*.title.*'] = ['nullable', 'string', 'max:100'];
         $validationRules['images.*.description'] = ['nullable', 'array'];
@@ -85,9 +85,9 @@ class StoreMuseumRequest extends FormRequest
     public function messages(): array
     {
         $languages = Language::all();
-        $imageMaxSize = config('mediasettings.sizes.image.max');
-        $galleryWidth = config('mediasettings.dimensions.gallery.width');
-        $galleryHeight = config('mediasettings.dimensions.gallery.height');
+        $imageMaxSize = config('media.sizes.image.max');
+        $galleryWidth = config('media.dimensions.gallery.width');
+        $galleryHeight = config('media.dimensions.gallery.height');
         $messages = [];
 
         foreach ($languages as $language) {
@@ -101,7 +101,7 @@ class StoreMuseumRequest extends FormRequest
             $messages["logo.{$lang}.id.integer"] = "L'ID del logo in {$langName} deve essere un numero.";
             $messages["logo.{$lang}.id.exists"] = "Il logo selezionato in {$langName} non esiste.";
             $messages["logo.file.{$lang}.image"] = "Il file del logo in {$langName} deve essere un'immagine.";
-            $messages["logo.file.{$lang}"] = "Il file logo deve essere un immagine valido e non superare 2MB (Formats: jpeg, jpg, png, gif, Dimensioni massime: 1200 x 1536).";
+            $messages["logo.file.{$lang}"] = "Il file logo deve essere un immagine valido e non superare 2MB (Formats: jpeg, jpg, png, gif, Dimensioni massime: 1200 x 1536). {$langName}.";
             $messages["audio.id.{$lang}.integer"] = "L'ID dell'audio in {$langName} deve essere un numero.";
             $messages["audio.id.exists"] = "L'audio selezionato non esiste.";
             $messages["audio.file.{$lang}"] = "Il file audio deve essere un file mp3 valido e non superare 4MB.";

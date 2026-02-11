@@ -8,7 +8,6 @@ import museumsRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
 import { type Language, MediaData } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-
 import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
 import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
 import TipTap from '@/components/hibou/TipTap.vue';
@@ -32,74 +31,74 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Inizializziamo gli oggetti multilingua usando i codici reali (language.code)
 const emptyByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
 
 const form = useForm({
     name: { ...emptyByLanguage },
-    caption: { ...emptyByLanguage },
     description: { ...emptyByLanguage },
     logo: null as MediaData | null,
     audio: null as MediaData | null,
     images: [] as MediaData[],
-    processing: false,
 });
 
 function submit() {
-    form.processing = true;
     form.post(museumsRoutes.store().url, {
         onFinish: () => {
-            form.processing = false;
+            // Processing handled by Inertia automatically
         },
     });
 }
 </script>
 
 <template>
-    <Head title="Museums" />
+
+    <Head title="Create Museum" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Aggiungi Museo">
+            <template #button>
+                <Button :disabled="form.processing" @click="submit">Crea Museo</Button>
+            </template>
             <form @submit.prevent="submit">
-                <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
-                    <div class="rounded-lg border p-4 shadow">
-                        <Label class="mb-4 text-lg font-semibold"> Logo Museo </Label>
-                        <div class="overflow-hidden rounded-md">
+                <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4 dark:text-white">
+                    <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
+                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
+                        <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
                             <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.logo" :is-readonly="false" :accept="'image/*'" :max-file-size="5 * 1024 * 1024" />
                         </div>
                     </div>
-                    <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
-                        <Label class="block text-lg font-semibold"> Audio Museo </Label>
+                    <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
+                        <Label class="block text-lg font-semibold dark:text-gray-200"> Audio Museo </Label>
                         <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                     </div>
-                    <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
-                        <h2 class="mb-4 text-lg font-semibold">Informazioni Museo</h2>
+                    <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
+                        <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>
                         <Tabs v-model="currentLang" default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
-                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
-                                <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code">
+                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 dark:border-gray-700 pr-4">
+                                <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code" class="w-full justify-start dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
                                     {{ language.name }}
                                 </TabsTrigger>
                             </TabsList>
                             <TabsContent class="mt-1" v-for="language in languages" :key="language.code" :value="language.code">
-                                <Label class="mb-1 font-semibold">Nome</Label>
-                                <Input class="mb-4" v-model="form.name[language.code]" />
+                                <Label class="mb-2 block font-semibold dark:text-gray-200">Nome ({{ language.name }})</Label>
+                                <Input class="mb-4 dark:bg-gray-700 dark:text-white" v-model="form.name[language.code]" />
                                 <div v-if="form.errors[`name.${language.code}`]" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
                                     {{ form.errors[`name.${language.code}`] }}
                                 </div>
-                                <Label class="mb-1 font-semibold">Descrizione {{ language.name }}</Label>
-                                <div class="mb-4">
+                                <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
+                                <div class="mb-4 bg-white dark:bg-gray-700 rounded-md text-black">
                                     <TipTap v-model="form.description[language.code]" />
                                 </div>
                             </TabsContent>
                         </Tabs>
                     </div>
-                    <div class="col-span-2 rounded-lg border p-4 shadow">
-                        <Label class="mb-4 text-lg font-semibold"> Immagini del Museo </Label>
+                    <div class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
+                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Immagini del Museo </Label>
                         <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false" :primary="true" />
                     </div>
                 </div>
 
                 <div class="mt-4">
-                    <Button type="submit" :disabled="form.processing">Crea Museo</Button>
+                    <!-- Button passed in slot template above, repeated here for form submit if outside portal? No, usually not needed if template #button used -->
                 </div>
             </form>
         </PageLayout>

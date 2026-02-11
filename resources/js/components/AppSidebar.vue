@@ -29,7 +29,7 @@ const mainNavItems: NavItem[] = [
         title: 'Collezioni',
         href: exhibitionsRoutes.index(),
         icon: Eye,
-    },{
+    }, {
         title: 'Opere',
         href: postsRoutes.index(),
         icon: Image,
@@ -41,12 +41,7 @@ const settingNavItems: NavItem[] = [
         title: 'Gestisci lingue',
         href: languagesRoutes.index(),
         icon: Folder,
-    },
-    {
-        title: 'Gestisci media',
-        href: mediaRoutes.index(),
-        icon: Folder,
-    },
+    }
 ];
 
 const footerNavItems: NavItem[] = [];

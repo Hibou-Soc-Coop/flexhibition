@@ -4,23 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
-
-/**
- * @property int $id
- * @property array $name
- * @property array|null $content
- * @property array|null $description
- * @property int|null $audio_id
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- *
- * @property-read Media|null $audio
- */
-class Post extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+class Post extends Model implements HasMedia
 {
     use HasTranslations;
+    use InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -31,8 +23,6 @@ class Post extends Model
         'name',
         'description',
         'content',
-        'audio_id',
-        'exhibition_id',
     ];
 
     /**
@@ -46,45 +36,35 @@ class Post extends Model
         'content',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function registerMediaCollections(): void
     {
-        return [
-            'name' => 'array',
-            'content' => 'array',
-            'description' => 'array',
-        ];
-    }
-      public function Exhibition(): BelongsTo
-    {
-        return $this->belongsTo(Exhibition::class, 'exhibition_id');
-    }
-
-    /**
-     * Get the audio media.
-     */
-    public function audio(): BelongsTo
-    {
-        return $this->belongsTo(Media::class, 'audio_id');
+        $this->addMediaCollection('images')->registerMediaConversions(function (Media $media) {
+            $this->addMediaConversion('thumb')
+                ->width(config('media.dimensions.thumbnail.width'))
+                ->height(config('media.dimensions.thumbnail.height'))
+                ->sharpen(10)
+                ->nonQueued();
+            $this->addMediaConversion(name: 'full')
+                ->width(config('media.dimensions.full.width'))
+                ->height(config('media.dimensions.full.height'))
+                ->sharpen(10)
+                ->nonQueued();
+        });
+        $this->addMediaCollection('audio');
+        $this->addMediaCollection('qrcode');
     }
 
-    /**
-     * Get all images for this post.
-     */
-    public function images(): BelongsToMany
+    public function getAudio(string $lang = null)
     {
-        return $this->belongsToMany(Media::class, 'post_images');
+        if (!$lang) {
+            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === app()->getLocale());
+        } else {
+            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === $lang);
+        }
     }
 
-    /**
-     * Get all exhibitions that include this post.
-     */
-    // public function exhibitions(): BelongsToMany
-    // {
-    //     return $this->belongsToMany(Exhibition::class, 'exhibition_posts');
-    // }
+    public function Exhibition(): BelongsTo
+    {
+        return $this->belongsTo(Exhibition::class);
+    }
 }

@@ -2,19 +2,26 @@
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { usePage, router } from '@inertiajs/vue3';
-import  Button from '@/components/hibou/Button.vue';
+import Button from '@/components/hibou/Button.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type Language, MuseumData } from '@/types/flexhibition';
+import { type Language } from '@/types/flexhibition';
 import Card from '@/components/hibou/Card.vue';
-
 import museumsRoutes from '@/routes/museums';
+import PageLayout from '@/layouts/PageLayout.vue';
+
+// Define localized type for Index items based on Controller output
+interface MuseumIndexItem {
+    id: number;
+    name: Record<string, string>;
+    description: Record<string, string>;
+    logo: string; // URL string
+}
 
 const page = usePage();
-const languages = page.props.languages as Language[];
+// const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-const props = defineProps<{ museums: MuseumData[], maxMuseum: Number }>();
-console.log('Museums Props: ', props.museums);
+const props = defineProps<{ museums: MuseumIndexItem[], maxMuseum: number }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,11 +30,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-function truncate(text: string | undefined, maxLength: number): string {
+function truncate(text: string | null | undefined, maxLength: number): string {
     if (!text) return '-';
     return text.length > maxLength
         ? text.substring(0, maxLength) + '...'
         : text;
+}
+/**
+ * Helper to safely get translation
+ */
+function getTranslation(field: Record<string, string> | null, lang: string): string {
+    return field ? (field[lang] || '') : '';
 }
 
 </script>
@@ -36,24 +49,18 @@ function truncate(text: string | undefined, maxLength: number): string {
 
     <Head title="Museums" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8 container">
-            <div class="flex items-center mb-4">
-                <h1 class="font-bold text-3xl">Musei</h1>
-                <Button v-if="props.museums.length < Number(props.maxMuseum)" @click="router.visit(museumsRoutes.create().url)" colorScheme="create" class="ml-6 h-8">Aggiungi nuovo museo</Button>
-            </div>
+        <PageLayout title="Elenco Musei">
+            <template #button>
+                <div class="flex gap-2">
+                    <Button v-if="props.museums.length < Number(props.maxMuseum)" @click="router.visit(museumsRoutes.create().url)" colorScheme="create" class="ml-6 h-8">Aggiungi nuovo museo</Button>
+                </div>
+            </template>
             <div class="gap-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                <Card
-                       v-for="museum in props.museums"
-                        :key="museum.id"
-                       :route="museumsRoutes"
-                       :id="museum.id"
-                       :title="museum.name[primaryLanguageCode]"
-                       :excerpt="truncate(museum.description[primaryLanguageCode], 60)"
-                       :thumbnail="museum.logo.url ? `/storage/${museum.logo.url[primaryLanguageCode]}` : '/storage/sample-data/images/placeholder.jpg'"></Card>
-                <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center">
-                    No museums found.
+                <Card v-for="museum in props.museums" :key="museum.id" :route="museumsRoutes" :id="museum.id" :title="getTranslation(museum.name, primaryLanguageCode)" :excerpt="truncate(getTranslation(museum.description, primaryLanguageCode), 60)" :thumbnail="museum.logo || '/storage/sample-data/images/placeholder.jpg'"></Card>
+                <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center dark:text-gray-400">
+                    Nessun museo trovato.
                 </div>
             </div>
-        </div>
+        </PageLayout>
     </AppLayout>
 </template>

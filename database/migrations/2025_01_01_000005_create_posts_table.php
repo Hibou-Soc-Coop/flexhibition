@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->json('name'); // Campo traducibile
             $table->json('description')->nullable(); // Campo traducibile
             $table->json('content')->nullable(); // Campo traducibile
+            $table->foreignId('exhibition_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -28,3 +28,4 @@ yarn-error.log
 /.zed
 /.do_not_upload
 analyse.html
+.devdbrc

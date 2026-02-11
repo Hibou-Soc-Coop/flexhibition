@@ -3,56 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exhibition;
-use App\Models\Media;
 use App\Models\Museum;
 use App\Helpers\LanguageHelper;
 use App\Http\Requests\StoreExhibitionRequest;
 use App\Http\Requests\UpdateExhibitionRequest;
-use App\Services\MediaService;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ExhibitionController extends Controller
 {
-    public function __construct(
-        protected MediaService $mediaService
-    ) {
-    }
-
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $primaryLanguageCode = $primaryLanguage->code;
 
-        $exhibitionRecords = Exhibition::with(['museum'])->get();
+        $exhibitionRecords = Exhibition::with(['museum', 'media'])->get();
 
         $exhibitions = [];
 
+        /** @var Exhibition $exhibitionRecord */
         foreach ($exhibitionRecords as $exhibitionRecord) {
             $exhibition = [];
             $exhibition['id'] = $exhibitionRecord->id;
             $exhibition['name'] = $exhibitionRecord->getTranslations('name');
             $exhibition['description'] = $exhibitionRecord->getTranslations('description');
             $exhibition['museum_id'] = $exhibitionRecord->museum_id;
-            $exhibition['museum_name'] = $exhibitionRecord->museum ? $exhibitionRecord->museum->getTranslations('name')[$primaryLanguageCode] ?? '' : '';
+            $exhibition['museum_name'] = $exhibitionRecord->museum ?? $exhibitionRecord->museum->getTranslations('name');
             $exhibition['start_date'] = $exhibitionRecord->start_date?->format('Y-m-d');
             $exhibition['end_date'] = $exhibitionRecord->end_date?->format('Y-m-d');
             $exhibition['is_archived'] = $exhibitionRecord->is_archived;
-            $exhibition['audio']['url'] = $exhibitionRecord->audio ? $exhibitionRecord->audio->getTranslations('url') : [];
-            $exhibition['audio']['title'] = $exhibitionRecord->audio ? $exhibitionRecord->audio->getTranslations('title') : [];
-            $exhibition['audio']['description'] = $exhibitionRecord->audio ? $exhibitionRecord->audio->getTranslations('description') : [];
-
-            $exhibition['images'] = $exhibitionRecord->images->map(function ($image) use ($primaryLanguageCode) {
-                return [
-                    'url' => $image->getTranslations('url'),
-                    'title' => $image->getTranslations('title'),
-                    'description' => $image->getTranslations('description'),
-                ];
-            })->toArray();
 
             $exhibitions[] = $exhibition;
         }
@@ -70,15 +51,15 @@ class ExhibitionController extends Controller
         foreach ($museums as $museum) {
             $museumData = [];
             $museumData['id'] = $museum->id;
-            $museumData['name'] = [
-                $primaryLanguage->code => $museum->getTranslation('name', $primaryLanguage->code),
-            ];
+            $museumData['name'] = $museum->getTranslations('name');
             $museumsData[] = $museumData;
         }
+
         return Inertia::render('backend/Exhibitions/Create', [
             'museums' => $museumsData,
         ]);
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -89,32 +70,47 @@ class ExhibitionController extends Controller
         DB::beginTransaction();
 
         try {
-            // Create audio media if provided
-            $audioId = isset($data['audio']['file'])
-                ? $this->createMediaFromData($data['audio'], 'audio')?->id
-                : null;
-
             // Create the exhibition
             $exhibition = Exhibition::create([
                 'name' => $data['name'],
                 'description' => $data['description'] ?? [],
-                'audio_id' => $audioId,
                 'start_date' => (!empty($data['start_date']) && $data['start_date'] !== '') ? $data['start_date'] : null,
                 'end_date' => (!empty($data['end_date']) && $data['end_date'] !== '') ? $data['end_date'] : null,
-                'is_archived' => false,
+                'is_archived' => $data['is_archived'] ?? false,
                 'museum_id' => $data['museum_id'] ?? null,
             ]);
 
-            // Handle images
-            if (isset($data['images']) && !empty($data['images'])) {
-                $imageIds = collect($data['images'])
-                    ->map(function ($img) {
-                        return $this->createMediaFromData($img, 'image');
-                    })
-                    ->pluck('id')
-                    ->toArray();
+            // Gestione Audio (Multi-file per lingua)
+            if ($request->hasFile('audio.file')) {
+                foreach ($request->file('audio.file') as $langCode => $file) {
+                    $exhibition->addMediaFromRequest("audio.file.{$langCode}")
+                        ->withCustomProperties([
+                            'lang' => $langCode,
+                            'title' => $data['audio']['title'][$langCode] ?? null,
+                            'description' => $data['audio']['description'][$langCode] ?? null,
+                        ])
+                        ->toMediaCollection('audio');
+                }
+            }
 
-                $exhibition->images()->attach($imageIds);
+            // Gestione Immagini Gallery (Array di oggetti multi-file)
+            if (!empty($data['images'])) {
+                foreach ($data['images'] as $index => $imageData) {
+                    $baseKey = "images.{$index}.file";
+
+                    if ($request->hasFile($baseKey)) {
+                        foreach ($request->file($baseKey) as $langCode => $file) {
+                            $exhibition->addMediaFromRequest("{$baseKey}.{$langCode}")
+                                ->withCustomProperties([
+                                    'lang' => $langCode,
+                                    'title' => $imageData['title'][$langCode] ?? null,
+                                    'description' => $imageData['description'][$langCode] ?? null,
+                                    'group_index' => $index
+                                ])
+                                ->toMediaCollection('images');
+                        }
+                    }
+                }
             }
 
             DB::commit();
@@ -125,17 +121,22 @@ class ExhibitionController extends Controller
             return back()->withInput()->withErrors(['error' => 'Errore durante la creazione della collezione: ' . $e->getMessage()]);
         }
     }
+
     public function show(string $id)
     {
-        $exhibitionRecord = Exhibition::findOrFail($id);
+        $exhibitionRecord = Exhibition::with('media')->findOrFail($id);
         $museumRecord = Museum::find($exhibitionRecord->museum_id);
+
         $exhibitionName = $exhibitionRecord->getTranslations('name');
         $exhibitionDescription = $exhibitionRecord->getTranslations('description');
-        $exhibitionAudio = $exhibitionRecord->audio;
-        $exhibitionImages = $exhibitionRecord->images;
+
+        $exhibitionAudio = $exhibitionRecord->getMedia('audio');
+        $exhibitionImages = $exhibitionRecord->getMedia('images');
+
         $exhibitionStartDate = $exhibitionRecord->start_date?->format('Y-m-d');
         $exhibitionEndDate = $exhibitionRecord->end_date?->format('Y-m-d');
         $museum = $exhibitionRecord->museum ? $museumRecord->getTranslations('name') : null;
+
         $exhibitionData = [
             'id' => $exhibitionRecord->id,
             'name' => $exhibitionName,
@@ -155,15 +156,19 @@ class ExhibitionController extends Controller
     public function edit($id)
     {
         $primaryLanguage = LanguageHelper::getPrimaryLanguage();
-        $exhibitionRecord = Exhibition::findOrFail($id);
+        $exhibitionRecord = Exhibition::with('media')->findOrFail($id);
         $museumRecord = Museum::find($exhibitionRecord->museum_id);
+
         $exhibitionName = $exhibitionRecord->getTranslations('name');
         $exhibitionDescription = $exhibitionRecord->getTranslations('description');
-        $exhibitionAudio = $exhibitionRecord->audio;
-        $exhibitionImages = $exhibitionRecord->images;
+
+        $exhibitionAudio = $exhibitionRecord->getMedia('audio');
+        $exhibitionImages = $exhibitionRecord->getMedia('images');
+
         $exhibitionStartDate = $exhibitionRecord->start_date?->format('Y-m-d');
         $exhibitionEndDate = $exhibitionRecord->end_date?->format('Y-m-d');
         $museum = $exhibitionRecord->museum ? $museumRecord->getTranslations('name') : null;
+
         $exhibitionData = [
             'id' => $exhibitionRecord->id,
             'name' => $exhibitionName,
@@ -174,6 +179,7 @@ class ExhibitionController extends Controller
             'end_date' => $exhibitionEndDate,
             'is_archived' => $exhibitionRecord->is_archived,
             'museum_name' => $museum,
+            'museum_id' => $exhibitionRecord->museum_id,
         ];
 
         $museums = Museum::all();
@@ -181,9 +187,7 @@ class ExhibitionController extends Controller
         foreach ($museums as $museum) {
             $museumData = [];
             $museumData['id'] = $museum->id;
-            $museumData['name'] = [
-                $primaryLanguage->code => $museum->getTranslation('name', $primaryLanguage->code),
-            ];
+            $museumData['name'] = $museum->getTranslations('name');
             $museumsData[] = $museumData;
         }
 
@@ -191,13 +195,13 @@ class ExhibitionController extends Controller
             'exhibition' => $exhibitionData,
             'museums' => $museumsData,
         ]);
-
     }
 
     public function update(UpdateExhibitionRequest $request, string $id)
     {
         $data = $request->validated();
         $exhibition = Exhibition::findOrFail($id);
+
         DB::beginTransaction();
         try {
             $exhibition->update([
@@ -210,18 +214,50 @@ class ExhibitionController extends Controller
             ]);
 
             // Gestione Audio
-            $audioId = $this->handleMediaUpdate(
-                $data['audio'] ?? null,
-                $exhibition->audio_id,
-                'audio'
-            );
-            if ($audioId !== $exhibition->audio_id) {
-                $exhibition->update(['audio_id' => $audioId]);
+            if (isset($data['audio'])) {
+                $this->syncLocalizedMedia($exhibition, 'audio', $data['audio'], $request->file('audio.file'));
             }
 
             // Gestione Immagini Gallery
             if (isset($data['images'])) {
-                $this->handleGalleryUpdate($exhibition, $data['images']);
+                foreach ($data['images'] as $index => $imageData) {
+                    // Gestione Cancellazione
+                    if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
+                        $media = Media::find($imageData['id']);
+                        if ($media) {
+                            $media->delete();
+                        }
+                        continue;
+                    }
+
+                    $baseKey = "images.{$index}.file";
+                    $uploadedFiles = $request->file($baseKey) ?? [];
+
+                    // Gestione Nuovi File / Sostituzioni per gruppo
+                    foreach ($uploadedFiles as $langCode => $file) {
+                        $exhibition->addMediaFromRequest("{$baseKey}.{$langCode}")
+                            ->withCustomProperties([
+                                'lang' => $langCode,
+                                'title' => $imageData['title'][$langCode] ?? null,
+                                'description' => $imageData['description'][$langCode] ?? null,
+                                'group_index' => $index // Manteniamo index per raggruppamento logico
+                            ])
+                            ->toMediaCollection('images');
+                    }
+
+                    // Aggiornamento metadati per file esistenti
+                    if (!empty($imageData['id'])) {
+                        $media = Media::find($imageData['id']);
+                        if ($media) {
+                            $lang = $media->getCustomProperty('lang');
+                            if ($lang && isset($imageData['title'][$lang])) {
+                                $media->setCustomProperty('title', $imageData['title'][$lang]);
+                                $media->setCustomProperty('description', $imageData['description'][$lang]);
+                                $media->save();
+                            }
+                        }
+                    }
+                }
             }
 
             DB::commit();
@@ -233,8 +269,6 @@ class ExhibitionController extends Controller
             DB::rollBack();
             return back()->withInput()->withErrors(['error' => 'Errore durante l\'aggiornamento della mostra: ' . $e->getMessage()]);
         }
-
-
     }
 
 
@@ -243,148 +277,53 @@ class ExhibitionController extends Controller
         $exhibition = Exhibition::findOrFail($id);
         $exhibition->delete();
 
-
-
         return redirect()->route('exhibitions.index')->with('success', 'Exhibition deleted successfully.');
     }
 
-    // public function showExhibitions($museumId)
-    // {
-    //     $allExhibitionRecords = Exhibition::where('museum_id', $museumId)->get();
-    //     $exhibitions = [];
-    //     foreach ($allExhibitionRecords as $exhibitionRecord) {
-    //         $exhibition = [];
-    //         $exhibition['id'] = $exhibitionRecord->id;
-    //         $exhibition['name'] = $exhibitionRecord->getTranslations('name');
-    //         $exhibition['description'] = $exhibitionRecord->getTranslations('description');
-    //         $exhibition['start_date'] = $exhibitionRecord->start_date?->format('Y-m-d');
-    //         $exhibition['end_date'] = $exhibitionRecord->end_date?->format('Y-m-d');
-    //         $exhibition['audio'] = $exhibitionRecord->audio?->getTranslations('title');
-    //         $exhibition['images'] = $exhibitionRecord->images?->map(fn($image) => $image->getTranslations('url'));
-    //         $exhibition['museum_id'] = $museumId;
-    //         $exhibitions[] = $exhibition;
-    //     }
-    //     return Inertia::render('frontend/Collections', ['exhibitions' => $exhibitions]);
-    // }
-
-
-    private function createMediaFromData(array $data, string $type): ?Media
-    {
-        if (empty($data['file'])) {
-            return null;
-        }
-
-        return $this->mediaService->createMedia(
-            $type,
-            $data['file'],
-            $data['title'],
-            $data['description'] ?? null,
-            'public',
-            'media'
-        );
-    }
-
-    private function handleMediaUpdate(?array $data, ?int $currentMediaId, string $type): ?int
-    {
-        if (!$data) {
-            return $currentMediaId;
-        }
-
-        // Se è richiesta la cancellazione
-        if (!empty($data['to_delete']) && $currentMediaId) {
-            $this->mediaService->deleteMedia($currentMediaId);
-            return null;
-        }
-
-        // Se c'è un nuovo file da caricare
-        if (!empty($data['file'])) {
-            // Se esiste già un media, aggiornalo
-            if ($currentMediaId && !empty($data['id']) && $data['id'] == $currentMediaId) {
-                $this->mediaService->updateMedia(
-                    $currentMediaId,
-                    $data['file'],
-                    $data['title'] ?? null,
-                    $data['description'] ?? null,
-                    'public',
-                    'media'
-                );
-                return $currentMediaId;
-            } else {
-                // Crea un nuovo media e elimina il vecchio se esiste
-                if ($currentMediaId) {
-                    $this->mediaService->deleteMedia($currentMediaId);
-                }
-                $newMedia = $this->createMediaFromData($data, $type);
-                return $newMedia?->id;
-            }
-        }
-
-        // Se ci sono solo aggiornamenti di titolo/descrizione senza nuovo file
-        if ($currentMediaId && (isset($data['title']) || isset($data['description']))) {
-            $this->mediaService->updateMedia(
-                $currentMediaId,
-                null,
-                $data['title'] ?? null,
-                $data['description'] ?? null,
-                'public',
-                'media'
-            );
-        }
-
-        return $currentMediaId;
-    }
     /**
-     * Gestisce l'aggiornamento delle immagini della gallery.
-     *
-     * @param Exhibition $exhibition Istanza dell'esposizione
-     * @param array $imagesData Dati delle immagini dal request
+     * Sincronizza i media localizzati (Audio).
      */
-    private function handleGalleryUpdate(Exhibition $exhibition, array $imagesData): void
+    private function syncLocalizedMedia($model, $collection, $data, $files)
     {
-        //DA FARE: Controllare perche vengono come string gli id delle immagini gia esistenti.
-        $currentImageIds = $exhibition->images()->pluck('media.id')->toArray();
-        $updatedImageIds = [];
-
-        foreach ($imagesData as $imageData) {
-            // Se l'immagine deve essere eliminata
-            if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
-                $this->mediaService->deleteMedia($imageData['id']);
-                continue;
-            }
-
-            // Se c'è un ID esistente
-            if (!empty($imageData['id'])) {
-                // Aggiorna se c'è un nuovo file o metadati
-                if (!empty($imageData['file']) || isset($imageData['title']) || isset($imageData['description'])) {
-                    $this->mediaService->updateMedia(
-                        $imageData['id'],
-                        $imageData['file'] ?? null,
-                        $imageData['title'] ?? null,
-                        $imageData['description'] ?? null,
-                        'public',
-                        'media'
-                    );
-                }
-                $updatedImageIds[] = $imageData['id'];
-            } elseif (!empty($imageData['file'])) {
-                // Crea una nuova immagine
-                $newImage = $this->createMediaFromData($imageData, 'image');
-                if ($newImage) {
-                    $updatedImageIds[] = $newImage->id;
-                }
-            }
+        // Cancellazione totale
+        if (!empty($data['to_delete'])) {
+            $model->clearMediaCollection($collection);
+            return;
         }
 
-        // Sincronizza le immagini (rimuove quelle non più presenti)
-        $exhibition->images()->sync($updatedImageIds);
+        $files = $files ?? [];
 
-        // Elimina i media che non sono più associati
-        $imagesToDelete = array_diff($currentImageIds, $updatedImageIds);
-        foreach ($imagesToDelete as $imageId) {
-            $this->mediaService->deleteMedia($imageId);
+        // 1. Gestione nuovi file (Sostituzione per lingua)
+        foreach ($files as $lang => $file) {
+            // Rimuovi media esistente per questa lingua
+            $existing = $model->getMedia($collection, ['lang' => $lang])->first();
+            if ($existing) {
+                $existing->delete();
+            }
+
+            // Aggiungi nuovo
+            $model->addMedia($file)
+                ->withCustomProperties([
+                    'lang' => $lang,
+                    'title' => $data['title'][$lang] ?? null,
+                    'description' => $data['description'][$lang] ?? null
+                ])
+                ->toMediaCollection($collection);
+        }
+
+        // 2. Aggiornamento metadati per lingue senza nuovo file
+        if (isset($data['title'])) {
+            foreach ($data['title'] as $lang => $title) {
+                if (isset($files[$lang]))
+                    continue; // Già gestito sopra
+
+                $existing = $model->getMedia($collection, ['lang' => $lang])->first();
+                if ($existing) {
+                    $existing->setCustomProperty('title', $title);
+                    $existing->setCustomProperty('description', $data['description'][$lang] ?? null);
+                    $existing->save();
+                }
+            }
         }
     }
-
-
-
 }
