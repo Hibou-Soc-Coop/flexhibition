@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Museum;
-use App\Helpers\LanguageHelper;
 use App\Http\Requests\StoreMuseumRequest;
 use App\Http\Requests\UpdateMuseumRequest;
+use App\Models\Museum;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use \Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Http\Request;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MuseumController extends Controller
 {
@@ -18,7 +17,7 @@ class MuseumController extends Controller
      */
     public function index()
     {
-        //$maxMuseums = Settings::get('max_museum_records');
+        // $maxMuseums = Settings::get('max_museum_records');
         $maxMuseums = 2;
 
         $museumRecords = Museum::with('media')->get();
@@ -31,7 +30,12 @@ class MuseumController extends Controller
             $museum['id'] = $museumRecord->id;
             $museum['name'] = $museumRecord->getTranslations('name');
             $museum['description'] = $museumRecord->getTranslations('description');
-            $museum['logo'] = $museumRecord->getFirstMediaUrl('logo', 'thumb');
+
+            $logo = $museumRecord->getFirstMedia('logo');
+            $museum['logo'] = [
+                'url' => $logo->getUrl(),
+                'title' => $logo->getCustomProperty('title'),
+            ];
 
             $museums[] = $museum;
         }
@@ -48,12 +52,13 @@ class MuseumController extends Controller
     public function create()
     {
         $museums = Museum::count();
-        //$maxMuseums = Settings::get('max_museum_records');
+        // $maxMuseums = Settings::get('max_museum_records');
         $maxMuseums = 2;
 
         if ($museums >= $maxMuseums) {
             return redirect()->route('museums.index')->with('error', 'Non è possibile creare ulteriori musei.');
         }
+
         return Inertia::render('backend/Museums/Create', []);
     }
 
@@ -74,48 +79,36 @@ class MuseumController extends Controller
                 'description' => $data['description'],
             ]);
 
-            // Gestione Logo (Multi-file per lingua)
-            if ($request->hasFile('logo.file')) {
-                foreach ($request->file('logo.file') as $langCode => $file) {
-                    $museum->addMediaFromRequest("logo.file.{$langCode}")
-                        ->withCustomProperties([
-                            'lang' => $langCode,
-                            'title' => $data['logo']['title'][$langCode] ?? null,
-                            'description' => $data['logo']['description'][$langCode] ?? null,
-                        ])
-                        ->toMediaCollection('logo');
-                }
-            }
+            // Gestione Logo
+            $museum->addMediaFromRequest("logo.file")
+                ->toMediaCollection('logo');
 
-            // Gestione Audio (Multi-file per lingua)
-            if ($request->hasFile('audio.file')) {
-                foreach ($request->file('audio.file') as $langCode => $file) {
-                    $museum->addMediaFromRequest("audio.file.{$langCode}")
-                        ->withCustomProperties([
-                            'lang' => $langCode,
-                            'title' => $data['audio']['title'][$langCode] ?? null,
-                            'description' => $data['audio']['description'][$langCode] ?? null,
-                        ])
-                        ->toMediaCollection('audio');
+            // Gestione Audio (Multi-file per lingua) e.g. audio[it][file], audio[it][title]
+            if (! empty($data['audio'])) {
+                foreach ($data['audio'] as $langCode => $content) {
+                    if ($request->hasFile("audio.{$langCode}.file")) {
+                        $museum->addMediaFromRequest("audio.{$langCode}.file")
+                            ->withCustomProperties([
+                                'lang' => $langCode,
+                            ])
+                            ->toMediaCollection('audio');
+                    }
                 }
             }
 
             // Gestione Immagini Gallery (Array di oggetti multi-file)
-            if (!empty($data['images'])) {
+            if (! empty($data['images'])) {
                 foreach ($data['images'] as $index => $imageData) {
                     $baseKey = "images.{$index}.file";
 
                     if ($request->hasFile($baseKey)) {
-                        foreach ($request->file($baseKey) as $langCode => $file) {
-                            $museum->addMediaFromRequest("{$baseKey}.{$langCode}")
-                                ->withCustomProperties([
-                                    'lang' => $langCode,
-                                    'title' => $imageData['title'][$langCode] ?? null,
-                                    'description' => $imageData['description'][$langCode] ?? null,
-                                    'group_index' => $index
-                                ])
-                                ->toMediaCollection('images');
-                        }
+                        $museum->addMediaFromRequest($baseKey)
+                            ->withCustomProperties([
+                                'title' => $imageData['title'],
+                                'description' => $imageData['description'],
+                                'group_index' => $index,
+                            ])
+                            ->toMediaCollection('images');
                     }
                 }
             }
@@ -132,7 +125,7 @@ class MuseumController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Errore durante la creazione del museo: ' . $e->getMessage());
+                ->with('error', 'Errore durante la creazione del museo: '.$e->getMessage());
         }
     }
 
@@ -146,9 +139,26 @@ class MuseumController extends Controller
         $museumId = $museumRecord->id;
         $museumName = $museumRecord->getTranslations('name');
         $museumDescription = $museumRecord->getTranslations('description');
-        $museumLogo = $museumRecord->logo;
-        $museumAudio = $museumRecord->audio;
-        $museumImages = $museumRecord->images;
+
+        $logo = $museumRecord->getFirstMedia('logo');
+        $museumLogo = [
+            'url' => $logo->getUrl(),
+        ];
+
+        $audio = $museumRecord->getMedia('audio');
+        $museumAudio = $audio->map(fn ($media) => [
+            $media->getCustomProperty('lang') => [
+                'url' => $media->getUrl(),
+            ]
+        ])->collapse()->toArray();
+
+        $images = $museumRecord->getMedia('images');
+        $museumImages = $images->map(fn ($media) => [
+            'url' => $media->getUrl(),
+            'title' => $media->getCustomProperty('title'),
+            'caption' => $media->getCustomProperty('caption'),
+            'group_index' => $media->getCustomProperty('group_index'),
+        ])->groupBy('group_index')->toArray();
 
         $museumData = [
             'id' => $museumId,
@@ -174,9 +184,30 @@ class MuseumController extends Controller
         $museumId = $museumRecord->id;
         $museumName = $museumRecord->getTranslations('name');
         $museumDescription = $museumRecord->getTranslations('description');
-        $museumLogo = $museumRecord->logo;
-        $museumAudio = $museumRecord->audio;
-        $museumImages = $museumRecord->images;
+
+        $logo = $museumRecord->getFirstMedia('logo', 'thumb');
+        $museumLogo = [
+            'id' => $logo->id,
+            'url' => $logo->getUrl(),
+        ];
+
+        $audio = $museumRecord->getMedia('audio');
+
+        $museumAudio = $audio->map(fn ($media) => [
+            $media->getCustomProperty('lang') => [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+            ]
+        ])->collapse()->toArray();
+
+        $images = $museumRecord->getMedia('images');
+        $museumImages = $images->map(fn ($media) => [
+            'id' => $media->id,
+            'url' => $media->getUrl(),
+            'title' => $media->getCustomProperty('title'),
+            'caption' => $media->getCustomProperty('caption'),
+            'group_index' => $media->getCustomProperty('group_index'),
+        ])->groupBy('group_index')->toArray();
 
         $museumData = [
             'id' => $museumId,
@@ -210,55 +241,22 @@ class MuseumController extends Controller
             ]);
 
             // Gestione Logo
-            if (isset($data['logo'])) {
-                $this->syncLocalizedMedia($museum, 'logo', $data['logo'], $request->file('logo.file'));
+            if (isset($data['logo']) && $data['logo']['id'] === null) {
+                if ($request->hasFile('logo.file')) {
+                    $museum->clearMediaCollection('logo');
+                    $museum->addMediaFromRequest('logo.file')
+                        ->toMediaCollection('logo');
+                }
             }
 
             // Gestione Audio
             if (isset($data['audio'])) {
-                $this->syncLocalizedMedia($museum, 'audio', $data['audio'], $request->file('audio.file'));
+                $this->syncAudioFiles($museum, $data['audio']);
             }
 
             // Gestione Immagini Gallery
             if (isset($data['images'])) {
-                foreach ($data['images'] as $index => $imageData) {
-                    // Gestione Cancellazione
-                    if (!empty($imageData['to_delete']) && !empty($imageData['id'])) {
-                        $media = Media::find($imageData['id']);
-                        if ($media) {
-                            $media->delete();
-                        }
-                        continue;
-                    }
-
-                    $baseKey = "images.{$index}.file";
-                    $uploadedFiles = $request->file($baseKey) ?? [];
-
-                    // Gestione Nuovi File / Sostituzioni per gruppo
-                    foreach ($uploadedFiles as $langCode => $file) {
-                        $museum->addMediaFromRequest("{$baseKey}.{$langCode}")
-                            ->withCustomProperties([
-                                'lang' => $langCode,
-                                'title' => $imageData['title'][$langCode] ?? null,
-                                'description' => $imageData['description'][$langCode] ?? null,
-                                'group_index' => $index // Manteniamo index per raggruppamento logico
-                            ])
-                            ->toMediaCollection('images');
-                    }
-
-                    // Aggiornamento metadati per file esistenti
-                    if (!empty($imageData['id'])) {
-                        $media = Media::find($imageData['id']);
-                        if ($media) {
-                            $lang = $media->getCustomProperty('lang');
-                            if ($lang && isset($imageData['title'][$lang])) {
-                                $media->setCustomProperty('title', $imageData['title'][$lang]);
-                                $media->setCustomProperty('description', $imageData['description'][$lang]);
-                                $media->save();
-                            }
-                        }
-                    }
-                }
+                $this->syncGalleryFiles($museum, $data['images']);
             }
 
             DB::commit();
@@ -273,7 +271,7 @@ class MuseumController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Errore durante l\'aggiornamento del museo: ' . $e->getMessage());
+                ->with('error', 'Errore durante l\'aggiornamento del museo: '.$e->getMessage());
         }
     }
 
@@ -284,52 +282,50 @@ class MuseumController extends Controller
     {
         $museum = Museum::findOrFail($id);
         $museum->delete();
+
         return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
     }
 
-    /**
-     * Sincronizza i media localizzati (Logo, Audio).
-     */
-    private function syncLocalizedMedia($model, $collection, $data, $files)
+    private function syncAudioFiles(Museum $museum, array $audioData)
     {
-        // Cancellazione totale
-        if (!empty($data['to_delete'])) {
-            $model->clearMediaCollection($collection);
-            return;
-        }
+        $currentAudio = $museum->getMedia('audio');
+        $toDelete = $currentAudio->reject(fn (Media $m) => collect($audioData)->pluck('id')->contains($m->id));
+        $toDelete->each->delete();
 
-        $files = $files ?? [];
-
-        // 1. Gestione nuovi file (Sostituzione per lingua)
-        foreach ($files as $lang => $file) {
-            // Rimuovi media esistente per questa lingua
-            $existing = $model->getMedia($collection, ['lang' => $lang])->first();
-            if ($existing) {
-                $existing->delete();
+        foreach ($audioData as $lang => $data) {
+            if (! isset($data['id']) && isset($data['file']) && $data['file'] instanceof UploadedFile) {
+                // Aggiungi nuovo file audio
+                $museum->addMediaFromRequest("audio.{$lang}.file")
+                    ->withCustomProperties(['lang' => $lang])
+                    ->toMediaCollection('audio');
             }
-
-            // Aggiungi nuovo
-            $model->addMedia($file)
-                ->withCustomProperties([
-                    'lang' => $lang,
-                    'title' => $data['title'][$lang] ?? null,
-                    'description' => $data['description'][$lang] ?? null
-                ])
-                ->toMediaCollection($collection);
         }
+    }
 
-        // 2. Aggiornamento metadati per lingue senza nuovo file
-        if (isset($data['title'])) {
-            foreach ($data['title'] as $lang => $title) {
-                if (isset($files[$lang]))
-                    continue; // Già gestito sopra
+    private function syncGalleryFiles(Museum $museum, array $galleryData)
+    {
+        $currentGallery = $museum->getMedia('images');
+        $toDelete = $currentGallery->reject(fn (Media $m) => collect($galleryData)->pluck('id')->contains($m->id));
+        $toDelete->each->delete();
 
-                $existing = $model->getMedia($collection, ['lang' => $lang])->first();
-                if ($existing) {
-                    $existing->setCustomProperty('title', $title);
-                    $existing->setCustomProperty('description', $data['description'][$lang] ?? null);
-                    $existing->save();
+        foreach ($galleryData as $index => $data) {
+            if (isset($data['id'])) {
+                $media = Media::find($data['id']);
+                if ($media) {
+                    $media->setCustomProperty('title', $data['title']);
+                    $media->setCustomProperty('description', $data['description']);
+                    $media->setCustomProperty('group_index', $index);
+                    $media->save();
                 }
+            } else if (! isset($data['id']) && isset($data['file']) && $data['file'] instanceof UploadedFile) {
+                // Aggiungi nuovo file alla galleria
+                $media = $museum->addMediaFromRequest("images.{$index}.file")
+                    ->withCustomProperties([
+                        'title' => $data['title'],
+                        'description' => $data['description'],
+                        'group_index' => $index,
+                    ])
+                    ->toMediaCollection('images');
             }
         }
     }

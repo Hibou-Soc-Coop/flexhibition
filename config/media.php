@@ -15,10 +15,10 @@ return [
 
     'sizes' => [
         'image' => [
-            'max' => 2048,
+            'max' => 1024 * 10, // 10MB
         ],
         'audio' => [
-            'max' => 4096,
+            'max' => 1024 * 4,
         ],
     ],
     'dimensions' => [

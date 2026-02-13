@@ -64,15 +64,6 @@ class Museum extends Model implements HasMedia
         $this->addMediaCollection('qrcode');
     }
 
-    public function getAudio(string $lang = null)
-    {
-        if (!$lang) {
-            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === app()->getLocale());
-        } else {
-            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === $lang);
-        }
-    }
-
     /**
      * Get all exhibitions for this museum.
      */
