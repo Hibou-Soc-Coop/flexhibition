@@ -1,41 +1,65 @@
 <!-- HMediaUploader.vue -->
 <script setup lang="ts">
 import { MAX_AUDIO_SIZE, MAX_IMAGE_HEIGHT, MAX_IMAGE_SIZE, MAX_IMAGE_WIDTH } from '@/constants/mediaSettings';
-import { type Language, type MediaData } from '@/types/flexhibition';
+import { MediaDataLocalized, type Language, type MediaData } from '@/types/flexhibition';
 import { usePage } from '@inertiajs/vue3';
 import { FileUp, Trash2 } from 'lucide-vue-next';
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 
 // ====== Props e constants ======
-const props = defineProps<{
-    mimetype: string; // “image/*”, “audio/*”, ecc.
-    isReadonly?: boolean;
-}>();
+const page = usePage();
+const languages = computed(() => page.props.languages as Language[]);
 
-const model = defineModel<MediaData | null>();
+const props = withDefaults(
+    defineProps<{
+        mimetype: string; // “image/*”, “audio/*”, ecc.
+        isReadonly?: boolean;
+        currentLang?: string;
+    }>(),
+    {
+        currentLang: 'it',
+    },
+);
+
+const model = defineModel<MediaDataLocalized>({
+    default: () => ({}),
+});
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: MediaData | null): void;
+    (e: 'update:modelValue', value: MediaDataLocalized): void;
     (e: 'invalid', message: string): void;
 }>();
 
 // ====== Stato reattivo ======
 const fileInput = ref<HTMLInputElement | null>(null);
-const localPreview = ref<string | null>(null);
+const localPreviews = ref<Record<string, string>>({});
 const showConfirm = ref(false);
 const isPicking = ref(false);
 const dragActive = ref(false);
+const error = ref<string | null>(null);
 
 const isImage = computed(() => props.mimetype.includes('image'));
 const isAudio = computed(() => props.mimetype.includes('audio'));
 
-const currentPreview = computed(() => localPreview.value || model.value?.url);
+const currentPreview = computed(() => {
+    if (localPreviews.value[props.currentLang]) {
+        return localPreviews.value[props.currentLang];
+    } else if (model.value?.[props.currentLang]?.url) {
+        return model.value[props.currentLang].url;
+    } else {
+        return '';
+    }
+});
 
 const currentFileName = computed(() => {
-    if (model.value?.file) return model.value.file.name;
-    if (model.value?.url) return 'File presente';
+    if (model.value?.[props.currentLang]?.file) return model.value[props.currentLang].file?.name;
+    if (model.value?.[props.currentLang]?.url) return 'File presente';
     return null;
 });
+
+/* ----------------------------------------------------------------
+ *  WATCHERS
+ * ---------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------
  *  HELPERS
@@ -61,16 +85,14 @@ async function onFileChange(e: Event) {
     if (!file) return;
 
     /* preview */
-    if (localPreview.value) {
-        URL.revokeObjectURL(localPreview.value);
+    if (localPreviews.value[props.currentLang]) {
+        URL.revokeObjectURL(localPreviews.value[props.currentLang]);
     }
-    localPreview.value = URL.createObjectURL(file);
+    localPreviews.value[props.currentLang] = URL.createObjectURL(file);
+    error.value = null;
 
-    model.value = {
-        id: null,
-        file: file,
-        url: null,
-    };
+    model.value[props.currentLang].id = null;
+    model.value[props.currentLang].file = file;
 }
 
 function onRemoveClick() {
@@ -79,19 +101,18 @@ function onRemoveClick() {
 }
 
 function confirmRemove() {
-    if (localPreview.value) {
-        URL.revokeObjectURL(localPreview.value);
-        localPreview.value = null;
+    if (localPreviews.value[props.currentLang]) {
+        URL.revokeObjectURL(localPreviews.value[props.currentLang]);
+        delete localPreviews.value[props.currentLang];
     }
+    error.value = null;
     showConfirm.value = false;
     if (fileInput.value) fileInput.value.value = '';
 
-    if (model.value) {
-        model.value = {
-            id: null,
-            file: null,
-            url: null,
-        };
+    if (model.value[props.currentLang]) {
+        model.value[props.currentLang].id = null;
+        model.value[props.currentLang].file = null;
+        model.value[props.currentLang].url = null;
     }
 }
 
@@ -122,7 +143,7 @@ function onDragLeave(e: DragEvent) {
 
 onUnmounted(() => {
     window.removeEventListener('focus', onWindowFocus);
-    if (localPreview.value) URL.revokeObjectURL(localPreview.value);
+    Object.values(localPreviews.value).forEach((url) => URL.revokeObjectURL(url));
 });
 </script>
 
@@ -170,19 +191,26 @@ onUnmounted(() => {
                      class="text-center text-muted-foreground transition-opacity duration-150 select-none"
                      style="pointer-events: none"
                      :class="isPicking ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'">
-                    <span v-if="isImage">Nessun file immagine caricato.<br />Clicca o trascina qui per caricare.</span>
-                    <span v-else-if="isAudio">Nessun file audio caricato.<br />Clicca o trascina qui per caricare.</span>
+                    <span v-if="isImage">
+                        Nessuna immagine caricata per
+                        {{languages.find((lang) => lang.code === currentLang)?.name || currentLang}}.<br />
+                        Clicca o trascina qui per caricare.
+                    </span>
+                    <span v-else-if="isAudio">Nessun audio caricato per
+                        {{languages.find((lang) => lang.code === currentLang)?.name || currentLang}}.<br />
+                        Clicca o trascina qui per caricare.</span>
                 </div>
             </template>
         </div>
 
         <!-- INFO -->
         <div v-if="currentFileName" class="mt-2 text-xs text-gray-500">{{ currentFileName }}</div>
+        <div v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</div>
 
         <!-- DIALOG CONFERMA -->
         <div v-if="showConfirm" class="absolute inset-0 z-20 flex items-center justify-center bg-black/40">
             <div class="flex flex-col items-center gap-2 rounded bg-white p-4 shadow-lg">
-                <span class="font-semibold text-red-600">Rimuovere il file?</span>
+                <span class="font-semibold text-red-600">Rimuovere il file per {{ currentLang }}?</span>
                 <div class="mt-2 flex gap-2">
                     <button type="button" class="btn btn-sm btn-destructive" @click="confirmRemove" autofocus>Conferma</button>
                     <button type="button" class="btn btn-sm" @click="cancelRemove">Annulla</button>

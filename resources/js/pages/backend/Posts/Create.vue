@@ -57,6 +57,7 @@ function submit() {
 </script>
 
 <template>
+
     <Head title="Posts" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Aggiungi Opera">
@@ -64,7 +65,7 @@ function submit() {
                 <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Audio Opera </Label>
-                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
                         <h2 class="mb-4 text-lg font-semibold">Informazioni Opera</h2>
@@ -89,8 +90,8 @@ function submit() {
                                 <Label class="mb-1 font-semibold">Exhibition</Label>
                                 <Select class="mb-4" v-model="form.exhibition_id">
                                     <SelectTrigger>
-                                            <SelectValue placeholder="Seleziona Collezione" />
-                                        </SelectTrigger>
+                                        <SelectValue placeholder="Seleziona Collezione" />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="exhibition in props.exhibitions" :key="exhibition.id" :value="exhibition.id">{{ exhibition.name[language.code] }}</SelectItem>
                                     </SelectContent>

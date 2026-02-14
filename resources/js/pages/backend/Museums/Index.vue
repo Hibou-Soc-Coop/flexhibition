@@ -4,24 +4,15 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { usePage, router } from '@inertiajs/vue3';
 import Button from '@/components/hibou/Button.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type Language } from '@/types/flexhibition';
+import { MuseumData, type Language } from '@/types/flexhibition';
 import Card from '@/components/hibou/Card.vue';
 import museumsRoutes from '@/routes/museums';
 import PageLayout from '@/layouts/PageLayout.vue';
 
-// Define localized type for Index items based on Controller output
-interface MuseumIndexItem {
-    id: number;
-    name: Record<string, string>;
-    description: Record<string, string>;
-    logo: string; // URL string
-}
-
 const page = usePage();
-// const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-const props = defineProps<{ museums: MuseumIndexItem[], maxMuseum: number }>();
+const props = defineProps<{ museums: MuseumData[], maxMuseum: number }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -56,7 +47,7 @@ function getTranslation(field: Record<string, string> | null, lang: string): str
                 </div>
             </template>
             <div class="gap-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                <Card v-for="museum in props.museums" :key="museum.id" :route="museumsRoutes" :id="museum.id" :title="getTranslation(museum.name, primaryLanguageCode)" :excerpt="truncate(getTranslation(museum.description, primaryLanguageCode), 60)" :thumbnail="museum.logo || '/storage/sample-data/images/placeholder.jpg'"></Card>
+                <Card v-for="museum in props.museums" :key="museum.id" :route="museumsRoutes" :id="museum.id" :title="getTranslation(museum.name, primaryLanguageCode)" :excerpt="truncate(getTranslation(museum.description, primaryLanguageCode), 60)" :thumbnail="museum.logo.url || '/storage/sample-data/images/placeholder.jpg'"></Card>
                 <div v-if="props.museums.length === 0" class="col-span-full py-8 text-muted-foreground text-center dark:text-gray-400">
                     Nessun museo trovato.
                 </div>

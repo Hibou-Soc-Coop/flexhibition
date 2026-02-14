@@ -111,12 +111,12 @@ function submit() {
                     <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
                         <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
-                            <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.logo" :is-readonly="false" :accept="'image/*'" :max-file-size="5 * 1024 * 1024" />
+                            <SingleMediaUpload v-model="form.logo" :is-readonly="false" :mimetype="'image/*'" :max-file-size="5 * 1024 * 1024" />
                         </div>
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <Label class="block text-lg font-semibold dark:text-gray-200"> Audio Museo </Label>
-                        <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>

@@ -68,8 +68,8 @@ function submit() {
                 <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4">
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Audio Collezione </Label>
-                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :accept="'audio/*'"
-                            :max-file-size="10 * 1024 * 1024" />
+                        <SingleMediaUpload v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'"
+                                           :max-file-size="10 * 1024 * 1024" />
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Data d'inizio </Label>
@@ -80,18 +80,18 @@ function submit() {
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
                         <h2 class="mb-4 text-lg font-semibold">Informazioni Collezione</h2>
                         <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8"
-                            orientation="vertical">
+                              orientation="vertical">
                             <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
                                 <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code">
                                     {{ language.name }}
                                 </TabsTrigger>
                             </TabsList>
                             <TabsContent class="mt-1" v-for="language in languages" :key="language.code"
-                                :value="language.code">
+                                         :value="language.code">
                                 <Label class="mb-1 font-semibold">Nome</Label>
                                 <Input class="mb-4" v-model="form.name[language.code]" />
                                 <div v-if="form.errors[`name.${language.code}`]"
-                                    class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
+                                     class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
                                     {{ form.errors[`name.${language.code}`] }}
                                 </div>
                                 <Label class="mb-1 font-semibold">Descrizione {{ language.name }}</Label>
@@ -115,7 +115,7 @@ function submit() {
                     <div class="col-span-2 rounded-lg border p-4 shadow">
                         <Label class="mb-4 text-lg font-semibold"> Immagini della Collezione </Label>
                         <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false"
-                            :primary="true" />
+                                               :primary="true" />
                     </div>
                 </div>
                 <div class="mt-4">

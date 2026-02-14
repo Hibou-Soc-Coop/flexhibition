@@ -81,8 +81,8 @@ function submit() {
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow">
                         <Label class="block text-lg font-semibold"> Audio Mostra </Label>
                         <SingleMediaUpload v-model="form.audio" v-if="props.exhibition.audio"
-                            :media_preview="`/storage/${props.exhibition.audio?.url[primaryLanguage.code]}`" :is-readonly="false"
-                            :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                                           :media_preview="`/storage/${props.exhibition.audio?.url[primaryLanguage.code]}`" :is-readonly="false"
+                                           :mimetype="'audio/*'" :max-file-size="10 * 1024 * 1024" />
                         <div v-else class="mt-2 w-full rounded-md border border-gray-300 bg-gray-100">
                             <p class="p-4 text-sm text-gray-500">Nessun audio disponibile</p>
                         </div>
@@ -96,7 +96,7 @@ function submit() {
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow">
                         <h2 class="mb-4 text-lg font-semibold">Informazioni Mostra</h2>
                         <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8"
-                            orientation="vertical">
+                              orientation="vertical">
                             <TabsList class="grid h-fit w-full grid-cols-1 gap-2">
                                 <template v-for="language in languages" :key="language.code">
                                     <TabsTrigger :value="language.code">
@@ -107,8 +107,7 @@ function submit() {
                             <TabsContent v-for="language in languages" :key="language.code" :value="language.code">
                                 <Label class="mb-4 text-base font-semibold"> Nome Mostra - {{ language.name }} </Label>
                                 <Input class="mb-4" v-model="form.name[language.code]" />
-                                <div v-if="form.errors[`name.${language.code}`]"
-                                    class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
+                                <div v-if="form.errors[`name.${language.code}`]" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
                                     {{ form.errors[`name.${language.code}`] }}
                                 </div>
                                 <Label class="mb-4 text-base font-semibold"> Descrizione Mostra - {{ language.name }}
@@ -130,7 +129,7 @@ function submit() {
                                     <SelectContent>
                                         <SelectItem v-for="museum in props.museums" :key="museum.id" :value="museum.id">
                                             {{
-                                            museum.name[language.code] }}
+                                                museum.name[language.code] }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -141,8 +140,7 @@ function submit() {
                         <Label class="mb-4 text-lg font-semibold"> Immagini del Mostra</Label>
                         <div class="col-span-2 rounded-lg border p-4 shadow">
                             <Label class="mb-4 text-lg font-semibold"> Immagini della Collezione </Label>
-                            <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false"
-                                :language="primaryLanguage.code" :primary="true" />
+                            <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false" :language="primaryLanguage.code" :primary="true" />
                         </div>
                     </div>
                 </div>

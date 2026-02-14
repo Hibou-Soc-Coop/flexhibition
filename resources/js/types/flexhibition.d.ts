@@ -7,42 +7,17 @@ export type Language = {
     readonly code: LanguageCode;
 };
 
-/** Media generico (immagine, video, audio, documento) */
-export interface Media {
-    readonly media_id: number;
-    readonly media_language_id: number;
-    readonly media_url: string;
-    readonly media_type: 'image' | 'video' | 'audio' | 'document';
-    readonly media_title: string;
-    readonly media_description?: string;
+// Per file singoli con o senza informazioni multilingua (es. titolo, didascalia)
+export interface MediaData extends Record<string, any> {
+    id: number | null;
+    file: File | null;
+    url: string | null;
+    title?: string | Record<string, string>;
+    caption?: string | Record<string, string>;
 }
 
-/** Informazioni multilingua su un media */
-export interface MediaInfo {
-    readonly media_id: string;
-    readonly media_language_id: number;
-    readonly media_title_id: string;
-    readonly media_description_id: string;
-    readonly media_url: string;
-    readonly media_type: 'image' | 'video' | 'audio' | 'document';
-    readonly media_contents: Record<
-        string,
-        {
-            media_title: string;
-            media_description?: string;
-            media_url: string;
-        }
-    >;
-}
-
-/** Museo (dati base, riferimenti a media) */
-export interface MuseumRecord {
-    readonly id: number;
-    readonly name: string;
-    readonly description: string;
-    readonly logo_id?: number;
-    readonly audio_id?: number;
-}
+// Per file multipli diversi per lingua (es. Audio)
+export type MediaDataLocalized = Record<LanguageCode, MediaData>;
 
 /** Spatie Media Library Object */
 export interface SpatieMedia {
@@ -72,14 +47,24 @@ export interface SpatieMedia {
     preview_url: string;
 }
 
+/** Museo (dati base, riferimenti a media) */
+export interface MuseumRecord {
+    readonly id: number;
+    readonly name: string;
+    readonly description: string;
+    readonly logo_id?: number;
+    readonly audio_id?: number;
+}
+
+
 /** Informazioni multilingua su un museo */
 export interface MuseumData {
     readonly id: number;
     readonly name: Record<string, string>;
     readonly description: Record<string, string>;
-    readonly logo: SpatieMedia[];
-    readonly audio: SpatieMedia[];
-    readonly images: SpatieMedia[];
+    readonly logo: MediaData;
+    readonly audio: MediaDataLocalized;
+    readonly images: MediaData[];
 }
 
 export interface MuseumUploadData extends MuseumData {
@@ -184,14 +169,7 @@ export interface ExhibitionPostInfo {
     readonly museum_point_id?: string;
 }
 
-export interface MediaData extends Record<string, any> {
-    id: number | null;
-    file?: Record<string, File>;
-    url?: Record<string, string> | null;
-    title: Record<string, string>;
-    description?: Record<string, string>;
-    to_delete?: boolean;
-}
+
 
 type RouteFunction = (...args: any[]) => { url: string; method: string };
 

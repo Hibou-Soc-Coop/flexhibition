@@ -49,7 +49,7 @@ function getGalleryImages(mediaList: SpatieMedia[]): SpatieMedia[] {
     return Object.values(groups);
 }
 
-const logo = getPrimaryMedia(props.museum.logo);
+const logo = props.museum.logo;
 const audio = getPrimaryMedia(props.museum.audio);
 const gallery = getGalleryImages(props.museum.images);
 
@@ -74,7 +74,7 @@ const gallery = getGalleryImages(props.museum.images);
                 <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                     <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
                     <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600 max-h-80 flex justify-center items-center bg-gray-50 dark:bg-gray-900">
-                        <img v-if="logo" :src="logo.original_url" :alt="logo.custom_properties?.title || 'Logo'" class="h-full w-full object-contain" />
+                        <img v-if="logo" :src="logo" alt="Logo Museo" class="h-full w-full object-contain" />
                         <div v-else class="flex h-40 w-full items-center justify-center text-gray-400 dark:text-gray-500">
                             Nessun logo
                         </div>

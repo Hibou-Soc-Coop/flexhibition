@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { MAX_FILES, MAX_IMAGE_HEIGHT, MAX_IMAGE_SIZE, MAX_IMAGE_WIDTH } from '@/constants/mediaSettings';
-import { type MediaData } from '@/types/flexhibition';
+import { MediaDataLocalizable, type MediaData } from '@/types/flexhibition';
 import { FileUp, Trash } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
@@ -11,7 +11,7 @@ const props = defineProps<{
     primary?: boolean;
 }>();
 
-const parentImages = defineModel<MediaData[]>();
+const parentImages = defineModel<MediaDataLocalizable[]>();
 
 const images = computed(() => parentImages.value ?? []);
 
@@ -162,13 +162,13 @@ const isAtFileLimit = computed(() => images.value.length >= MAX_FILES);
     <div class="mx-auto w-full">
         <!-- Dropzone / File Picker -->
         <div v-if="!isReadonlyCondition && primary" @drop="onDrop" @dragover="onDragOver" @dragleave="onDragLeave"
-            @click="triggerFileInput" :class="[
-                'group relative flex min-h-[120px] w-full flex-col items-center justify-center rounded-md border bg-gray-50 px-4 outline-none hover:bg-black/10',
+             @click="triggerFileInput" :class="[
+                'group relative flex min-h-30 w-full flex-col items-center justify-center rounded-md border bg-gray-50 px-4 outline-none hover:bg-black/10',
                 dragActive ? 'ring-2 ring-primary' : '',
                 isAtFileLimit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
             ]" tabindex="0">
             <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFileChange"
-                :disabled="isAtFileLimit" />
+                   :disabled="isAtFileLimit" />
             <!-- Icona animata mentre si sceglie -->
             <FileUp class="text-4xl transition-opacity group-hover:block" :class="isPicking ? 'block' : 'hidden'" />
             <!-- Messaggi testuali -->
@@ -188,12 +188,12 @@ const isAtFileLimit = computed(() => images.value.length >= MAX_FILES);
         <!-- Grid delle immagini -->
         <div class="my-4 grid grid-cols-5 gap-4">
             <div v-for="(img, idx) in images" :key="idx" class="flex bg-gray-100"
-                :class="[!props.isReadonly ? 'group' : '']">
+                 :class="[!props.isReadonly ? 'group' : '']">
                 <div class="relative aspect-square w-full overflow-hidden rounded-md border border-gray-300">
                     <img :src="img.url?.[activeLanguage] ? `/storage/${img.url?.[activeLanguage]}` : img.media_preview" alt="Preview"
-                        class="h-full w-full object-cover" />
+                         class="h-full w-full object-cover" />
                     <button v-if="!props.isReadonly && props.language" @click.prevent="removeImage(idx)"
-                        class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 p-2 text-red-800 opacity-0 transition-opacity group-hover:opacity-100 focus:ring-2 focus:ring-red-400 focus:outline-none">
+                            class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 p-2 text-red-800 opacity-0 transition-opacity group-hover:opacity-100 focus:ring-2 focus:ring-red-400 focus:outline-none">
                         <Trash />
                     </button>
                 </div>

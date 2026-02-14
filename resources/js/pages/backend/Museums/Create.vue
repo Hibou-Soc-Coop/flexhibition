@@ -6,10 +6,11 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import museumsRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
-import { type Language, MediaData } from '@/types/flexhibition';
+import { type Language, MediaData, MediaDataLocalized } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
 import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
+import SingleMediaUploadLocalized from '@/components/hibou/SingleMediaUploadLocalized.vue';
 import TipTap from '@/components/hibou/TipTap.vue';
 import Button from '@/components/hibou/Button.vue';
 import { ref } from 'vue';
@@ -31,13 +32,28 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const emptyByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
+const emptyContentByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
+const emptyMediaData = {
+    id: null,
+    file: null,
+    url: null,
+} as MediaData;
+const emptyMediaDataLocalized = Object.fromEntries(
+    languages.map((l) => [
+        l.code,
+        {
+            id: null,
+            file: null,
+            url: null,
+        },
+    ]),
+) as MediaDataLocalized;
 
 const form = useForm({
-    name: { ...emptyByLanguage },
-    description: { ...emptyByLanguage },
-    logo: null as MediaData | null,
-    audio: null as MediaData | null,
+    name: { ...emptyContentByLanguage },
+    description: { ...emptyContentByLanguage },
+    logo: { ...emptyMediaData } as MediaData | null,
+    audio: { ...emptyMediaDataLocalized } as MediaDataLocalized,
     images: [] as MediaData[],
 });
 
@@ -63,12 +79,12 @@ function submit() {
                     <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
                         <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
-                            <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.logo" :is-readonly="false" :accept="'image/*'" :max-file-size="5 * 1024 * 1024" />
+                            <SingleMediaUpload v-model="form.logo" :is-readonly="false" :mimetype="'image/*'" :max-file-size="5 * 1024 * 1024" />
                         </div>
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <Label class="block text-lg font-semibold dark:text-gray-200"> Audio Museo </Label>
-                        <SingleMediaUpload multi-language :current-lang="currentLang" v-model="form.audio" :is-readonly="false" :accept="'audio/*'" :max-file-size="10 * 1024 * 1024" />
+                        <SingleMediaUploadLocalized v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :current-lang="currentLang" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>
