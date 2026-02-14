@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import Button from '@/components/hibou/Button.vue';
+import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
+import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
+import SingleMediaUploadLocalized from '@/components/hibou/SingleMediaUploadLocalized.vue';
 import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,11 +12,8 @@ import museumsRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
 import { type Language, MediaData, MediaDataLocalized } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
-import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
-import SingleMediaUploadLocalized from '@/components/hibou/SingleMediaUploadLocalized.vue';
-import TipTap from '@/components/hibou/TipTap.vue';
-import Button from '@/components/hibou/Button.vue';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { ref } from 'vue';
 
 const page = usePage();
@@ -67,7 +68,6 @@ function submit() {
 </script>
 
 <template>
-
     <Head title="Create Museum" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Aggiungi Museo">
@@ -88,9 +88,20 @@ function submit() {
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>
-                        <Tabs v-model="currentLang" default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
-                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 dark:border-gray-700 pr-4">
-                                <TabsTrigger v-for="language in languages" :key="language.code" :value="language.code" class="w-full justify-start dark:text-gray-300 dark:data-[state=active]:bg-gray-700">
+                        <Tabs
+                            v-model="currentLang"
+                            default-value="it"
+                            :unmount-on-hide="false"
+                            class="grid w-full grid-cols-[15%_auto] gap-8"
+                            orientation="vertical"
+                        >
+                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 pr-4 dark:border-gray-700">
+                                <TabsTrigger
+                                    v-for="language in languages"
+                                    :key="language.code"
+                                    :value="language.code"
+                                    class="w-full justify-start dark:text-gray-300 dark:data-[state=active]:bg-gray-700"
+                                >
                                     {{ language.name }}
                                 </TabsTrigger>
                             </TabsList>
@@ -101,8 +112,8 @@ function submit() {
                                     {{ form.errors[`name.${language.code}`] }}
                                 </div>
                                 <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
-                                <div class="mb-4 bg-white dark:bg-gray-700 rounded-md text-black">
-                                    <TipTap v-model="form.description[language.code]" />
+                                <div class="mb-4 rounded-md bg-white text-black dark:bg-gray-700">
+                                    <QuillEditor v-model="form.description[language.code]" />
                                 </div>
                             </TabsContent>
                         </Tabs>

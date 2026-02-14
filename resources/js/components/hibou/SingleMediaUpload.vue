@@ -1,8 +1,6 @@
 <!-- HMediaUploader.vue -->
 <script setup lang="ts">
-import { MAX_AUDIO_SIZE, MAX_IMAGE_HEIGHT, MAX_IMAGE_SIZE, MAX_IMAGE_WIDTH } from '@/constants/mediaSettings';
-import { type Language, type MediaData } from '@/types/flexhibition';
-import { usePage } from '@inertiajs/vue3';
+import { type MediaData } from '@/types/flexhibition';
 import { FileUp, Trash2 } from 'lucide-vue-next';
 import { computed, onUnmounted, ref } from 'vue';
 
@@ -13,11 +11,6 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<MediaData | null>();
-
-const emit = defineEmits<{
-    (e: 'update:modelValue', value: MediaData | null): void;
-    (e: 'invalid', message: string): void;
-}>();
 
 // ====== Stato reattivo ======
 const fileInput = ref<HTMLInputElement | null>(null);
