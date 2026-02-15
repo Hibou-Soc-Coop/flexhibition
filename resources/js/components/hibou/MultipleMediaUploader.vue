@@ -14,7 +14,6 @@ import { computed, ref } from 'vue';
 
 // ====== Props e constants ======
 const props = defineProps<{
-    language?: string;
     isReadonly?: boolean;
     primary?: boolean;
 }>();
@@ -33,6 +32,9 @@ const isEditModalOpen = ref(false);
 const editingImageIndex = ref<number>(-1);
 const page = usePage();
 const languages = computed(() => page.props.languages as Language[]);
+const primaryLanguage = page.props.primaryLanguage as Language | null;
+const primaryLanguageCode = primaryLanguage?.code || 'it';
+
 
 // ====== Funzioni di utilità ======
 
@@ -117,7 +119,7 @@ function removeImage(idx: number) {
 function openEditCaptionModal(idx: number) {
     editingImageIndex.value = idx;
     const img = images.value[idx];
-    const currentLang = props.language ?? 'it';
+    const currentLang = primaryLanguageCode;
 
     if (!img.title || typeof img.title !== 'object') {
         img.title = typeof img.title === 'string' ? { [currentLang]: img.title } : {};
@@ -197,7 +199,7 @@ const isAtFileLimit = computed(() => images.value.length >= MAX_FILES);
                         <Edit />
                     </button>
                     <button
-                        v-if="!props.isReadonly && props.language"
+                        v-if="!props.isReadonly"
                         @click.prevent="removeImage(idx)"
                         class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-gray-100 p-2 text-red-800 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-200 focus:ring-2 focus:ring-red-400 focus:outline-none"
                     >
@@ -237,7 +239,7 @@ const isAtFileLimit = computed(() => images.value.length >= MAX_FILES);
                         />
                         <Label class="mb-2 block font-semibold dark:text-gray-200">Didascalia ({{ language.name }})</Label>
                         <div class="mb-4 rounded-md bg-white text-black dark:bg-gray-700">
-                            <QuillEditor v-model:content="(images[editingImageIndex].caption as Record<string, string>)[language.code]" />
+                            <QuillEditor v-model:content="(images[editingImageIndex].caption as Record<string, string>)[language.code]" content-type="html"/>
                         </div>
                     </TabsContent>
                 </Tabs>

@@ -113,7 +113,7 @@ function submit() {
                                 </div>
                                 <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
                                 <div class="mb-4 rounded-md bg-white text-black dark:bg-gray-700">
-                                    <QuillEditor v-model="form.description[language.code]" />
+                                    <QuillEditor v-model:content="form.description[language.code]" content-type="html" />
                                 </div>
                             </TabsContent>
                         </Tabs>
