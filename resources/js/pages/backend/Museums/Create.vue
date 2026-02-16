@@ -14,13 +14,17 @@ import { type Language, MediaData, MediaDataLocalized } from '@/types/flexhibiti
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
-const currentLang = ref<string>(primaryLanguageCode);
+const currentLangCode = ref<string>(primaryLanguageCode);
+const currentLangName = computed(() => {
+    const lang = languages.find((l) => l.code === currentLangCode.value);
+    return lang ? lang.name : currentLangCode.value;
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -77,19 +81,19 @@ function submit() {
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4 dark:text-white">
                     <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
+                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo </Label>
                         <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
                             <SingleMediaUpload v-model="form.logo" :is-readonly="false" :mimetype="'image/*'" :max-file-size="5 * 1024 * 1024" />
                         </div>
                     </div>
                     <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <Label class="block text-lg font-semibold dark:text-gray-200"> Audio Museo </Label>
-                        <SingleMediaUploadLocalized v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :current-lang="currentLang" />
+                        <Label class="block text-lg font-semibold dark:text-gray-200"> Audio ({{ currentLangName }})</Label>
+                        <SingleMediaUploadLocalized v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :current-lang="currentLangCode" />
                     </div>
                     <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>
+                        <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni</h2>
                         <Tabs
-                            v-model="currentLang"
+                            v-model="currentLangCode"
                             default-value="it"
                             :unmount-on-hide="false"
                             class="grid w-full grid-cols-[15%_auto] gap-8"
@@ -113,13 +117,13 @@ function submit() {
                                 </div>
                                 <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
                                 <div class="mb-4 rounded-md bg-white text-black dark:bg-gray-700">
-                                    <QuillEditor v-model:content="form.description[language.code]" content-type="html" />
+                                    <QuillEditor class="min-h-30" v-model:content="form.description[language.code]" content-type="html" />
                                 </div>
                             </TabsContent>
                         </Tabs>
                     </div>
                     <div class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Immagini del Museo </Label>
+                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Galleria </Label>
                         <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false" :primary="true" />
                     </div>
                 </div>

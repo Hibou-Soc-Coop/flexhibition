@@ -238,3 +238,9 @@
         @apply bg-background text-foreground;
     }
 }
+
+/** Override per Quill Editor, che altrimenti sarebbe troppo piccolo */
+
+.ql-editor {
+    min-height: 7.5rem;
+}

@@ -6,9 +6,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import museumRoutes from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
-import { MuseumData, type Language, SpatieMedia } from '@/types/flexhibition';
+import { MuseumData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import museumsRoutes from '@/routes/museums';
+import { ref, computed } from 'vue';
 
 const props = defineProps<{ museum: MuseumData }>();
 
@@ -16,6 +17,11 @@ const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
+const currentLangCode = ref<string>(primaryLanguageCode);
+const currentLangName = computed(() => {
+    const lang = languages.find((l) => l.code === currentLangCode.value);
+    return lang ? lang.name : currentLangCode.value;
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Museo', href: museumRoutes.index().url },
@@ -28,30 +34,9 @@ const deleteMuseum = () => {
     }
 };
 
-function getPrimaryMedia(mediaList: SpatieMedia[]): SpatieMedia | undefined {
-    if (!mediaList || mediaList.length === 0) return undefined;
-    return mediaList.find(m => m.custom_properties?.lang === primaryLanguageCode) || mediaList[0];
-}
-
-function getGalleryImages(mediaList: SpatieMedia[]): SpatieMedia[] {
-    if (!mediaList) return [];
-    const groups: Record<number, SpatieMedia> = {};
-    mediaList.forEach(m => {
-        const idx = m.custom_properties?.group_index ?? m.id;
-        if (!groups[idx]) {
-            groups[idx] = m;
-        } else {
-            if (m.custom_properties?.lang === primaryLanguageCode) {
-                groups[idx] = m;
-            }
-        }
-    });
-    return Object.values(groups);
-}
-
 const logo = props.museum.logo;
-const audio = getPrimaryMedia(props.museum.audio);
-const gallery = getGalleryImages(props.museum.images);
+const audio = props.museum.audio;
+const gallery = props.museum.images;
 
 </script>
 
@@ -72,24 +57,24 @@ const gallery = getGalleryImages(props.museum.images);
             </template>
             <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4 dark:text-white">
                 <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                    <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo Museo </Label>
+                    <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo </Label>
                     <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600 max-h-80 flex justify-center items-center bg-gray-50 dark:bg-gray-900">
-                        <img v-if="logo" :src="logo" alt="Logo Museo" class="h-full w-full object-contain" />
+                        <img v-if="logo?.url" :src="logo.url" alt="Logo Museo" class="h-full w-full object-contain" />
                         <div v-else class="flex h-40 w-full items-center justify-center text-gray-400 dark:text-gray-500">
                             Nessun logo
                         </div>
                     </div>
                 </div>
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                    <Label class="block text-lg font-semibold dark:text-gray-200"> Audio Museo </Label>
-                    <audio v-if="audio" :src="audio.original_url" controls class="mt-2 w-full" />
+                    <Label class="block text-lg font-semibold dark:text-gray-200"> Audio ({{ currentLangName }})</Label>
+                    <audio v-if="audio?.[currentLangCode]?.url" :src="audio?.[currentLangCode]?.url ?? undefined" controls class="mt-2 w-full" />
                     <div v-else class="mt-2 w-full rounded-md border border-gray-300 bg-gray-100 p-4 text-sm text-gray-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">
                         Nessun audio disponibile
                     </div>
                 </div>
                 <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                    <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni Museo</h2>
-                    <Tabs default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
+                    <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni</h2>
+                    <Tabs v-model="currentLangCode" default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
                         <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 dark:border-gray-700 pr-4">
                             <template v-for="language in languages" :key="language.code">
                                 <TabsTrigger
@@ -112,7 +97,7 @@ const gallery = getGalleryImages(props.museum.images);
                     </Tabs>
                 </div>
                 <div class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                    <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Immagini del Museo </Label>
+                    <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Galleria </Label>
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         <div v-for="(image, index) in gallery" :key="index" class="aspect-square w-full overflow-hidden rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900">
                             <img :src="image.original_url" :alt="image.custom_properties?.title || ''" class="h-full w-full object-cover" />

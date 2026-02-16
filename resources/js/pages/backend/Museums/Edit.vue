@@ -8,10 +8,11 @@ import PageLayout from '@/layouts/PageLayout.vue';
 import museumRoutes from '@/routes/museums';
 import SingleMediaUpload from '@/components/hibou/SingleMediaUpload.vue';
 import { type BreadcrumbItem } from '@/types';
-import { MuseumData, type Language, MediaData, SpatieMedia } from '@/types/flexhibition';
+import { MuseumData, type Language, MediaData } from '@/types/flexhibition';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import TipTap from '@/components/hibou/TipTap.vue';
 import MultipleMediaUploader from '@/components/hibou/MultipleMediaUploader.vue';
+import { QuillEditor } from '@vueup/vue-quill';
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { ref } from 'vue';
 
 const props = defineProps<{ museum: MuseumData }>();
@@ -34,49 +35,13 @@ const deleteMuseum = () => {
 
 const emptyByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
 
-// Helpers to transform SpatieMedia[] to MediaData
-function transformSingleMedia(mediaList: SpatieMedia[]): MediaData | null {
-    if (!mediaList || mediaList.length === 0) return null;
-    const res: MediaData = {
-        id: mediaList[0].id,
-        url: {},
-        title: {},
-        description: {},
-        file: {}
-    };
-    mediaList.forEach(m => {
-        const lang = m.custom_properties?.lang || 'it';
-        if (res.url) res.url[lang] = m.original_url;
-        if (res.title) res.title[lang] = m.custom_properties?.title || '';
-        if (res.description) res.description[lang] = m.custom_properties?.description || '';
-    });
-    return res;
-}
-
-function transformGalleryMedia(mediaList: SpatieMedia[]): MediaData[] {
-    const groups: Record<number, MediaData> = {};
-    mediaList.forEach(m => {
-        const idx = m.custom_properties?.group_index ?? m.id;
-        if (!groups[idx]) {
-            groups[idx] = {
-                id: m.id,
-                url: {}, title: {}, description: {}, file: {}
-            };
-        }
-        const lang = m.custom_properties?.lang || 'it';
-        if (groups[idx].url) groups[idx].url![lang] = m.original_url;
-        if (groups[idx].title) groups[idx].title[lang] = m.custom_properties?.title || '';
-        if (groups[idx].description) groups[idx].description![lang] = m.custom_properties?.description || '';
-    });
-    return Object.values(groups);
-}
 
 const form = useForm({
     name: props.museum.name ?? { ...emptyByLanguage },
     description: props.museum.description ?? { ...emptyByLanguage },
-    logo: transformSingleMedia(props.museum.logo) as MediaData | null,
-    audio: transformSingleMedia(props.museum.audio) as MediaData | null,
-    images: transformGalleryMedia(props.museum.images) as MediaData[],
+    logo: props.museum.logo as MediaData | null,
+    audio: props.museum.audio as MediaData | null,
+    images: props.museum.images as MediaData[],
 });
 
 function submit() {
@@ -134,8 +99,7 @@ function submit() {
                                 </div>
                                 <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
                                 <div class="mb-4 bg-white dark:bg-gray-700 rounded-md text-black">
-                                    <!-- TipTap usually handles its own styling, but container might need tweaks -->
-                                    <TipTap v-model="form.description[language.code]" />
+                                    <QuillEditor class="min-h-30" v-model:content="form.description[language.code]" content-type="html" />
                                 </div>
                             </TabsContent>
                         </Tabs>
