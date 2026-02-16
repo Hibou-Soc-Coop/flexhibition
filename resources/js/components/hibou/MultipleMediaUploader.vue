@@ -224,10 +224,11 @@ const isAtFileLimit = computed(() => images.value.length >= MAX_FILES);
                 :class="[!props.isReadonly ? 'group' : '']"
             >
                 <div
+                    v-if="img.url"
                     class="relative aspect-square w-full overflow-hidden rounded-md border border-gray-300"
                 >
                     <img
-                        :src="img.url ? `/storage/${img.url}` : img.media_preview"
+                        :src="img.url"
                         alt="Preview"
                         class="h-full w-full object-cover"
                     />
