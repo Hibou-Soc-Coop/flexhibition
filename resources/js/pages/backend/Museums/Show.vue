@@ -4,12 +4,11 @@ import Label from '@/components/ui/label/Label.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
-import museumRoutes from '@/routes/museums';
+import { default as museumRoutes, default as museumsRoutes } from '@/routes/museums';
 import { type BreadcrumbItem } from '@/types';
 import { MuseumData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import museumsRoutes from '@/routes/museums';
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{ museum: MuseumData }>();
 
@@ -37,7 +36,6 @@ const deleteMuseum = () => {
 const logo = props.museum.logo;
 const audio = props.museum.audio;
 const gallery = props.museum.images;
-
 </script>
 
 <template>
@@ -47,22 +45,16 @@ const gallery = props.museum.images;
         <PageLayout title="Dettaglio Museo">
             <template #button>
                 <div class="flex gap-2">
-                    <Button @click="router.visit(museumsRoutes.edit.url(props.museum.id))" color-scheme="edit">
-                        Modifica Museo
-                    </Button>
-                    <Button @click="deleteMuseum" color-scheme="delete">
-                        Elimina Museo
-                    </Button>
+                    <Button @click="router.visit(museumsRoutes.edit.url(props.museum.id))" color-scheme="edit"> Modifica Museo </Button>
+                    <Button @click="deleteMuseum" color-scheme="delete"> Elimina Museo </Button>
                 </div>
             </template>
             <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4 dark:text-white">
                 <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                     <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo </Label>
-                    <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600 max-h-80 flex justify-center items-center bg-gray-50 dark:bg-gray-900">
+                    <div class="flex max-h-80 items-center justify-center overflow-hidden rounded-md border border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
                         <img v-if="logo?.url" :src="logo.url" alt="Logo Museo" class="h-full w-full object-contain" />
-                        <div v-else class="flex h-40 w-full items-center justify-center text-gray-400 dark:text-gray-500">
-                            Nessun logo
-                        </div>
+                        <div v-else class="flex h-40 w-full items-center justify-center text-gray-400 dark:text-gray-500">Nessun logo</div>
                     </div>
                 </div>
                 <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
@@ -75,7 +67,7 @@ const gallery = props.museum.images;
                 <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                     <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni</h2>
                     <Tabs v-model="currentLangCode" default-value="it" :unmount-on-hide="false" class="grid w-full grid-cols-[15%_auto] gap-8" orientation="vertical">
-                        <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 dark:border-gray-700 pr-4">
+                        <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 pr-4 dark:border-gray-700">
                             <template v-for="language in languages" :key="language.code">
                                 <TabsTrigger
                                              v-if="props.museum.name[language.code] || props.museum.description[language.code]"
@@ -91,15 +83,14 @@ const gallery = props.museum.images;
                                 {{ props.museum.name[language.code] }}
                             </p>
                             <Label class="mb-2 block font-semibold dark:text-gray-200"> Descrizione ({{ language.name }}) </Label>
-                            <div class="mb-2 flex min-h-15 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input dark:border-gray-600 dark:bg-gray-900 dark:text-white prose dark:prose-invert max-w-none" v-html="props.museum.description[language.code] || '-'">
-                            </div>
+                            <div class="prose dark:prose-invert mb-2 flex min-h-15 w-full max-w-none items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input dark:border-gray-600 dark:bg-gray-900 dark:text-white" v-html="props.museum.description[language.code] || '-'"></div>
                         </TabsContent>
                     </Tabs>
                 </div>
                 <div class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                     <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Galleria </Label>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        <div v-for="(image, index) in gallery" :key="index" class="aspect-square w-full overflow-hidden rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900">
+                    <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+                        <div v-for="(image, index) in gallery" :key="index" class="aspect-square w-full overflow-hidden rounded-md border border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
                             <img :src="image.original_url" :alt="image.custom_properties?.title || ''" class="h-full w-full object-cover" />
                         </div>
                         <div v-if="gallery.length === 0" class="col-span-full py-4 text-center text-gray-500 dark:text-gray-400">

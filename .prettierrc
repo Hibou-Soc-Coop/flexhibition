@@ -3,21 +3,27 @@
     "experimentalTernaries": true,
     "semi": true,
     "singleQuote": true,
-    "singleAttributePerLine": false,
+    "singleAttributePerLine": true,
     "htmlWhitespaceSensitivity": "css",
-    "printWidth": 150,
+    "printWidth": 100,
+    "tabWidth": 4,
+    "useTabs": false,
     "plugins": [
-        "prettier-plugin-organize-imports",
-        "prettier-plugin-tailwindcss"
+        "prettier-plugin-tailwindcss",
+        "prettier-plugin-organize-imports"
     ],
     "tailwindFunctions": [
         "clsx",
         "cn"
     ],
     "tailwindStylesheet": "resources/css/app.css",
-    "tabWidth": 4,
-    "useTabs": false,
     "overrides": [
+        {
+            "files": "*.vue",
+            "options": {
+                "parser": "vue"
+            }
+        },
         {
             "files": "**/*.yml",
             "options": {

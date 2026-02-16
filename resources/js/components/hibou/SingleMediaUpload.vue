@@ -121,18 +121,20 @@ onUnmounted(() => {
 
 <template>
     <div
-         class="group relative flex min-h-30 w-full flex-col items-center justify-center rounded-md border bg-gray-50 px-4 outline-none focus-within:ring-2 focus-within:ring-primary"
-         @drop="onDrop"
-         @dragover="onDragOver"
-         @dragleave="onDragLeave"
-         :class="{ 'ring-2 ring-primary': dragActive }">
+        class="group relative flex min-h-30 w-full flex-col items-center justify-center rounded-md border bg-gray-50 px-4 outline-none focus-within:ring-2 focus-within:ring-primary"
+        @drop="onDrop"
+        @dragover="onDragOver"
+        @dragleave="onDragLeave"
+        :class="{ 'ring-2 ring-primary': dragActive }"
+    >
         <!-- RIMUOVI -->
         <button
-                v-if="currentPreview && !isReadonly"
-                type="button"
-                class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-white/80 p-2 text-red-600 transition hover:bg-red-100 focus:ring-2 focus:ring-red-400 focus:outline-none"
-                aria-label="Rimuovi file"
-                @click="onRemoveClick">
+            v-if="currentPreview && !isReadonly"
+            type="button"
+            class="absolute top-1 right-1 z-10 flex items-center justify-center rounded-full bg-white/80 p-2 text-red-600 transition hover:bg-red-100 focus:ring-2 focus:ring-red-400 focus:outline-none"
+            aria-label="Rimuovi file"
+            @click="onRemoveClick"
+        >
             <Trash2 />
         </button>
 
@@ -148,21 +150,24 @@ onUnmounted(() => {
 
             <template v-if="!currentPreview && !isReadonly">
                 <button
-                        type="button"
-                        aria-label="Carica file"
-                        @click="openPicker"
-                        class="absolute inset-0 flex items-center justify-center bg-black/10 transition"
-                        :class="isPicking ? 'pointer-events-auto opacity-100' : (
+                    type="button"
+                    aria-label="Carica file"
+                    @click="openPicker"
+                    class="absolute inset-0 flex items-center justify-center bg-black/10 transition"
+                    :class="
+                        isPicking ? 'pointer-events-auto opacity-100' : (
                             'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100'
                         )
-                            ">
+                    "
+                >
                     <FileUp />
                 </button>
 
                 <div
-                     class="text-center text-muted-foreground transition-opacity duration-150 select-none"
-                     style="pointer-events: none"
-                     :class="isPicking ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'">
+                    class="text-center text-muted-foreground transition-opacity duration-150 select-none"
+                    style="pointer-events: none"
+                    :class="isPicking ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'"
+                >
                     <span v-if="isImage">Nessun file immagine caricato.<br />Clicca o trascina qui per caricare.</span>
                     <span v-else-if="isAudio">Nessun file audio caricato.<br />Clicca o trascina qui per caricare.</span>
                 </div>

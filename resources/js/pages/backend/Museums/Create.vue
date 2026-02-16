@@ -14,7 +14,7 @@ import { type Language, MediaData, MediaDataLocalized } from '@/types/flexhibiti
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const page = usePage();
 const languages = page.props.languages as Language[];
@@ -29,20 +29,22 @@ const currentLangName = computed(() => {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Museums',
-        href: '#',
+        href: museumsRoutes.index().url,
     },
     {
         title: 'Create',
-        href: museumsRoutes.create().url,
+        href: '#',
     },
 ];
 
 const emptyContentByLanguage = Object.fromEntries(languages.map((l) => [l.code, '']));
+
 const emptyMediaData = {
     id: null,
     file: null,
     url: null,
 } as MediaData;
+
 const emptyMediaDataLocalized = Object.fromEntries(
     languages.map((l) => [
         l.code,
@@ -65,7 +67,7 @@ const form = useForm({
 function submit() {
     form.post(museumsRoutes.store().url, {
         onFinish: () => {
-            // Processing handled by Inertia automatically
+            form.processing = false;
         },
     });
 }
@@ -76,21 +78,43 @@ function submit() {
     <AppLayout :breadcrumbs="breadcrumbs">
         <PageLayout title="Aggiungi Museo">
             <template #button>
-                <Button :disabled="form.processing" @click="submit">Crea Museo</Button>
+                <Button
+                    :disabled="form.processing"
+                    @click="submit"
+                    >Crea Museo</Button
+                >
             </template>
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-[1fr_4fr] grid-rows-[auto_auto] gap-4 dark:text-white">
                     <div class="rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                         <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Logo </Label>
-                        <div class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600">
-                            <SingleMediaUpload v-model="form.logo" :is-readonly="false" :mimetype="'image/*'" :max-file-size="5 * 1024 * 1024" />
+                        <div
+                            class="overflow-hidden rounded-md border border-gray-300 dark:border-gray-600"
+                        >
+                            <SingleMediaUpload
+                                v-model="form.logo"
+                                :is-readonly="false"
+                                :mimetype="'image/*'"
+                                :max-file-size="5 * 1024 * 1024"
+                            />
                         </div>
                     </div>
-                    <div class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <Label class="block text-lg font-semibold dark:text-gray-200"> Audio ({{ currentLangName }})</Label>
-                        <SingleMediaUploadLocalized v-model="form.audio" :is-readonly="false" :mimetype="'audio/*'" :current-lang="currentLangCode" />
+                    <div
+                        class="col-start-1 col-end-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800"
+                    >
+                        <Label class="block text-lg font-semibold dark:text-gray-200">
+                            Audio ({{ currentLangName }})</Label
+                        >
+                        <SingleMediaUploadLocalized
+                            v-model="form.audio"
+                            :is-readonly="false"
+                            :mimetype="'audio/*'"
+                            :current-lang="currentLangCode"
+                        />
                     </div>
-                    <div class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
+                    <div
+                        class="col-start-2 col-end-3 row-start-1 row-end-3 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800"
+                    >
                         <h2 class="mb-4 text-lg font-semibold dark:text-gray-200">Informazioni</h2>
                         <Tabs
                             v-model="currentLangCode"
@@ -99,7 +123,9 @@ function submit() {
                             class="grid w-full grid-cols-[15%_auto] gap-8"
                             orientation="vertical"
                         >
-                            <TabsList class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 pr-4 dark:border-gray-700">
+                            <TabsList
+                                class="grid h-fit w-full grid-cols-1 gap-2 border-r border-gray-200 pr-4 dark:border-gray-700"
+                            >
                                 <TabsTrigger
                                     v-for="language in languages"
                                     :key="language.code"
@@ -109,27 +135,50 @@ function submit() {
                                     {{ language.name }}
                                 </TabsTrigger>
                             </TabsList>
-                            <TabsContent class="mt-1" v-for="language in languages" :key="language.code" :value="language.code">
-                                <Label class="mb-2 block font-semibold dark:text-gray-200">Nome ({{ language.name }})</Label>
-                                <Input class="mb-4 dark:bg-gray-700 dark:text-white" v-model="form.name[language.code]" />
-                                <div v-if="form.errors[`name.${language.code}`]" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
+                            <TabsContent
+                                class="mt-1"
+                                v-for="language in languages"
+                                :key="language.code"
+                                :value="language.code"
+                            >
+                                <Label class="mb-2 block font-semibold dark:text-gray-200"
+                                    >Nome ({{ language.name }})</Label
+                                >
+                                <Input
+                                    class="mb-4 dark:bg-gray-700 dark:text-white"
+                                    v-model="form.name[language.code]"
+                                />
+                                <div
+                                    v-if="form.errors[`name.${language.code}`]"
+                                    class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700"
+                                >
                                     {{ form.errors[`name.${language.code}`] }}
                                 </div>
-                                <Label class="mb-2 block font-semibold dark:text-gray-200">Descrizione ({{ language.name }})</Label>
+                                <Label class="mb-2 block font-semibold dark:text-gray-200"
+                                    >Descrizione ({{ language.name }})</Label
+                                >
                                 <div class="mb-4 rounded-md bg-white text-black dark:bg-gray-700">
-                                    <QuillEditor class="min-h-30" v-model:content="form.description[language.code]" content-type="html" />
+                                    <QuillEditor
+                                        v-model:content="form.description[language.code]"
+                                        content-type="html"
+                                    />
                                 </div>
                             </TabsContent>
                         </Tabs>
                     </div>
-                    <div class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800">
-                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200"> Galleria </Label>
-                        <MultipleMediaUploader v-model="form.images" :is-readonly="false" :show-caption="false" :primary="true" />
+                    <div
+                        class="col-span-2 rounded-lg border p-4 shadow dark:border-gray-700 dark:bg-gray-800"
+                    >
+                        <Label class="mb-4 text-lg font-semibold dark:text-gray-200">
+                            Galleria
+                        </Label>
+                        <MultipleMediaUploader
+                            v-model="form.images"
+                            :is-readonly="false"
+                            :show-caption="false"
+                            :primary="true"
+                        />
                     </div>
-                </div>
-
-                <div class="mt-4">
-                    <!-- Button passed in slot template above, repeated here for form submit if outside portal? No, usually not needed if template #button used -->
                 </div>
             </form>
         </PageLayout>
