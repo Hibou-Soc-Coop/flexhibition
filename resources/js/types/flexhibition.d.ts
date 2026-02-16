@@ -19,7 +19,6 @@ export interface MediaData extends Record<string, any> {
 // Per file multipli diversi per lingua (es. Audio)
 export type MediaDataLocalized = Record<LanguageCode, MediaData>;
 
-/** Informazioni multilingua su un museo */
 export interface MuseumMinimalData {
     readonly id: number;
     readonly name: Record<string, string>;
@@ -37,7 +36,6 @@ export interface ExhibitionMinimalData {
     readonly name: Record<string, string>;
 }
 
-/** Informazioni multilingua su una mostra */
 export interface ExhibitionData extends ExhibitionMinimalData {
     readonly description: Record<string, string>;
     readonly images: MediaData[];
@@ -45,10 +43,9 @@ export interface ExhibitionData extends ExhibitionMinimalData {
     readonly start_date?: string;
     readonly end_date?: string;
     readonly is_archived: boolean;
-    readonly museum: MuseumMinimalData;
+    readonly museum_id: number;
 }
 
-/** Informazioni multilingua su un' Opera */
 export interface PostData {
     readonly id: number;
     readonly name: Record<string, string>;
@@ -56,7 +53,7 @@ export interface PostData {
     readonly content?: Record<string, string>;
     readonly images: MediaData[];
     readonly audio: MediaDataLocalized;
-    readonly exhibition: ExhibitionMinimalData;
+    readonly exhibition_id: number;
 }
 
 type RouteFunction = (...args: any[]) => { url: string; method: string };

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -56,14 +55,14 @@ class Post extends Model implements HasMedia
 
     public function getAudio(string $lang = null)
     {
-        if (!$lang) {
-            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === app()->getLocale());
+        if (! $lang) {
+            return $this->getMedia('audio')->first(fn (Media $media) => $media->getCustomProperty('lang') === app()->getLocale());
         } else {
-            return $this->getMedia('audio')->first(fn(Media $media) => $media->getCustomProperty('lang') === $lang);
+            return $this->getMedia('audio')->first(fn (Media $media) => $media->getCustomProperty('lang') === $lang);
         }
     }
 
-    public function Exhibition(): BelongsTo
+    public function exhibition(): BelongsTo
     {
         return $this->belongsTo(Exhibition::class);
     }

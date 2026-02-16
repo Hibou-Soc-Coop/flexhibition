@@ -16,13 +16,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import postsRoutes from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
-import {
-    ExhibitionData,
-    ExhibitionMinimalData,
-    Language,
-    MediaData,
-    MediaDataLocalized,
-} from '@/types/flexhibition';
+import { ExhibitionData, Language, MediaData, MediaDataLocalized } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -70,7 +64,7 @@ const form = useForm({
     content: { ...emptyContentByLanguage },
     audio: { ...emptyMediaDataLocalized },
     images: [] as MediaData[],
-    exhibition: null as ExhibitionMinimalData | null,
+    exhibition_id: null as number | null,
 });
 
 function submit() {
@@ -151,7 +145,7 @@ function submit() {
                                 <Label class="mb-1 font-semibold">Exhibition</Label>
                                 <Select
                                     class="mb-4"
-                                    v-model="form.exhibition?.id"
+                                    v-model="form.exhibition_id"
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleziona Collezione" />

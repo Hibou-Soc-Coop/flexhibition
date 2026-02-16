@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\MediaHelper;
 use App\Http\Requests\StoreMuseumRequest;
 use App\Http\Requests\UpdateMuseumRequest;
 use App\Models\Museum;
@@ -85,32 +86,12 @@ class MuseumController extends Controller
 
             // Gestione Audio (Multi-file per lingua) e.g. audio[it][file], audio[it][title]
             if (! empty($data['audio'])) {
-                foreach ($data['audio'] as $langCode => $content) {
-                    if ($request->hasFile("audio.{$langCode}.file")) {
-                        $museum->addMediaFromRequest("audio.{$langCode}.file")
-                            ->withCustomProperties([
-                                'lang' => $langCode,
-                            ])
-                            ->toMediaCollection('audio');
-                    }
-                }
+                MediaHelper::syncAudioFiles($museum, $data['audio']);
             }
 
             // Gestione Immagini Gallery (Array di oggetti multi-file)
             if (! empty($data['images'])) {
-                foreach ($data['images'] as $index => $imageData) {
-                    $baseKey = "images.{$index}.file";
-
-                    if ($request->hasFile($baseKey)) {
-                        $museum->addMediaFromRequest($baseKey)
-                            ->withCustomProperties([
-                                'title' => $imageData['title'],
-                                'description' => $imageData['description'],
-                                'group_index' => $index,
-                            ])
-                            ->toMediaCollection('images');
-                    }
-                }
+                MediaHelper::syncGalleryFiles($museum, $data['images']);
             }
 
             DB::commit();
@@ -251,12 +232,12 @@ class MuseumController extends Controller
 
             // Gestione Audio
             if (isset($data['audio'])) {
-                $this->syncAudioFiles($museum, $data['audio']);
+                MediaHelper::syncAudioFiles($museum, $data['audio']);
             }
 
             // Gestione Immagini Gallery
             if (isset($data['images'])) {
-                $this->syncGalleryFiles($museum, $data['images']);
+                MediaHelper::syncGalleryFiles($museum, $data['images']);
             }
 
             DB::commit();
@@ -284,49 +265,5 @@ class MuseumController extends Controller
         $museum->delete();
 
         return redirect()->route('museums.index')->with('success', 'Museo eliminato con successo.');
-    }
-
-    private function syncAudioFiles(Museum $museum, array $audioData)
-    {
-        $currentAudio = $museum->getMedia('audio');
-        $toDelete = $currentAudio->reject(fn (Media $m) => collect($audioData)->pluck('id')->contains($m->id));
-        $toDelete->each->delete();
-
-        foreach ($audioData as $lang => $data) {
-            if (! isset($data['id']) && isset($data['file']) && $data['file'] instanceof UploadedFile) {
-                // Aggiungi nuovo file audio
-                $museum->addMediaFromRequest("audio.{$lang}.file")
-                    ->withCustomProperties(['lang' => $lang])
-                    ->toMediaCollection('audio');
-            }
-        }
-    }
-
-    private function syncGalleryFiles(Museum $museum, array $galleryData)
-    {
-        $currentGallery = $museum->getMedia('images');
-        $toDelete = $currentGallery->reject(fn (Media $m) => collect($galleryData)->pluck('id')->contains($m->id));
-        $toDelete->each->delete();
-
-        foreach ($galleryData as $index => $data) {
-            if (isset($data['id'])) {
-                $media = Media::find($data['id']);
-                if ($media) {
-                    $media->setCustomProperty('title', $data['title']);
-                    $media->setCustomProperty('description', $data['description']);
-                    $media->setCustomProperty('group_index', $index);
-                    $media->save();
-                }
-            } else if (! isset($data['id']) && isset($data['file']) && $data['file'] instanceof UploadedFile) {
-                // Aggiungi nuovo file alla galleria
-                $media = $museum->addMediaFromRequest("images.{$index}.file")
-                    ->withCustomProperties([
-                        'title' => $data['title'],
-                        'description' => $data['description'],
-                        'group_index' => $index,
-                    ])
-                    ->toMediaCollection('images');
-            }
-        }
     }
 }

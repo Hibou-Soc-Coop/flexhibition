@@ -10,9 +10,10 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 const page = usePage();
 const languages = page.props.languages as Language[];
 const primaryLanguage = page.props.primaryLanguage as Language | null;
-
 const primaryLanguageCode = primaryLanguage?.code || 'it';
+
 const props = defineProps<{ exhibitions: ExhibitionData[] }>();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Mostre',

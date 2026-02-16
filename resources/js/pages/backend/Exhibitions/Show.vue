@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import exhibitionsRoutes from '@/routes/exhibitions';
 import { type BreadcrumbItem } from '@/types';
-import { ExhibitionData, type Language } from '@/types/flexhibition';
+import { ExhibitionData, MuseumMinimalData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -31,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const props = defineProps<{ exhibition: ExhibitionData }>();
+const props = defineProps<{ exhibition: ExhibitionData; museum: MuseumMinimalData }>();
 
 const deleteExhibition = () => {
     if (confirm('Sei sicuro di voler eliminare questa mostra?')) {
@@ -137,7 +137,7 @@ const deleteExhibition = () => {
                             </Label>
                             <div
                                 class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input"
-                                v-html="props.exhibition.museum?.name[language.code] || '-'"
+                                v-html="props.museum.name[language.code] || '-'"
                             ></div>
                         </TabsContent>
                     </Tabs>

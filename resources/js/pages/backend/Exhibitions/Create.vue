@@ -16,13 +16,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import exhibitionsRoutes from '@/routes/exhibitions';
 import { type BreadcrumbItem } from '@/types';
-import {
-    Language,
-    MediaData,
-    MediaDataLocalized,
-    MuseumData,
-    MuseumMinimalData,
-} from '@/types/flexhibition';
+import { Language, MediaData, MediaDataLocalized, MuseumMinimalData } from '@/types/flexhibition';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
@@ -38,17 +32,17 @@ const currentLangName = computed(() => {
     return lang ? lang.name : currentLangCode.value;
 });
 
-const props = defineProps<{ museums: MuseumData[] }>();
+const props = defineProps<{ museums: MuseumMinimalData[] }>();
 console.log('museums:', props.museums);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Exhibitions',
-        href: '#',
+        href: exhibitionsRoutes.index().url,
     },
     {
         title: 'Create',
-        href: exhibitionsRoutes.create().url,
+        href: '#',
     },
 ];
 
@@ -67,13 +61,12 @@ const emptyMediaDataLocalized = Object.fromEntries(
 
 const form = useForm({
     name: { ...emptyContentByLanguage },
-    caption: { ...emptyContentByLanguage },
     description: { ...emptyContentByLanguage },
     start_date: '' as string,
     end_date: '' as string,
     audio: { ...emptyMediaDataLocalized } as MediaDataLocalized,
     images: [] as MediaData[],
-    museum: {} as MuseumMinimalData,
+    museum_id: null as number | null,
 });
 
 function submit() {
@@ -165,7 +158,7 @@ function submit() {
                                 <Label class="mb-1 font-semibold">Museum</Label>
                                 <Select
                                     class="mb-4"
-                                    v-model="form.museum.id"
+                                    v-model="form.museum_id"
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleziona museo" />
@@ -188,8 +181,6 @@ function submit() {
                         <MultipleMediaUploader
                             v-model="form.images"
                             :is-readonly="false"
-                            :show-caption="false"
-                            :primary="true"
                         />
                     </div>
                 </div>

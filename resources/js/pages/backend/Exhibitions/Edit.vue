@@ -20,7 +20,6 @@ import {
     ExhibitionData,
     MediaData,
     MediaDataLocalized,
-    MuseumData,
     MuseumMinimalData,
     type Language,
 } from '@/types/flexhibition';
@@ -28,11 +27,10 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { QuillEditor } from '@vueup/vue-quill';
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
-const props = defineProps<{ exhibition: ExhibitionData; museums: MuseumData[] }>();
+const props = defineProps<{ exhibition: ExhibitionData; museums: MuseumMinimalData[] }>();
 
 const page = usePage();
 const languages = page.props.languages as Language[];
-console.log('museums:', props.museums);
 const primaryLanguage = page.props.primaryLanguage as Language;
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Exhibitions', href: exhibitionRoutes.index().url },
@@ -66,7 +64,7 @@ const form = useForm({
     audio: props.exhibition.audio ?? ({ ...emptyMediaDataLocalized } as MediaDataLocalized),
     images: props.exhibition.images || ([] as MediaData[]),
     is_archived: props.exhibition.is_archived ?? false,
-    museum: props.exhibition.museum ?? (null as MuseumMinimalData | null),
+    museum_id: props.exhibition.museum_id ?? null,
 });
 
 function submit() {
@@ -193,7 +191,7 @@ function submit() {
                                 <Label class="mb-1 font-semibold"> Museo </Label>
                                 <Select
                                     class="mb-4"
-                                    v-model="form.museum.id"
+                                    v-model="form.museum_id"
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleziona museo" />

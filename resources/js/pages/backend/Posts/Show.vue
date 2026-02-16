@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import PageLayout from '@/layouts/PageLayout.vue';
 import postsRoutes from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
-import { PostData, type Language } from '@/types/flexhibition';
+import { ExhibitionMinimalData, PostData, type Language } from '@/types/flexhibition';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -25,7 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Details', href: '#' },
 ];
 
-const props = defineProps<{ post: PostData }>();
+const props = defineProps<{ post: PostData; exhibition: ExhibitionMinimalData | null }>();
 
 const deletePost = () => {
     if (confirm('Sei sicuro di voler eliminare questa opera?')) {
@@ -121,7 +121,7 @@ const deletePost = () => {
                             </Label>
                             <div
                                 class="mb-6 flex min-h-9 w-full items-center rounded-md border border-input px-3 py-1 text-sm shadow-xs shadow-input"
-                                v-html="props.post.exhibition.name || '-'"
+                                v-html="props.exhibition?.name?.[language.code] || '-'"
                             ></div>
                         </TabsContent>
                     </Tabs>
