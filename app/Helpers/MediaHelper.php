@@ -19,7 +19,7 @@ class MediaHelper
                 $media = Media::find($data['id']);
                 if ($media) {
                     $media->setCustomProperty('title', $data['title']);
-                    $media->setCustomProperty('description', $data['description']);
+                    $media->setCustomProperty('caption', $data['caption']);
                     $media->setCustomProperty('group_index', $index);
                     $media->save();
                 }
@@ -27,7 +27,7 @@ class MediaHelper
                 $model->addMediaFromRequest("{$collection}.{$index}.file")
                     ->withCustomProperties([
                         'title' => $data['title'],
-                        'description' => $data['description'],
+                        'caption' => $data['caption'],
                         'group_index' => $index,
                     ])
                     ->toMediaCollection($collection);

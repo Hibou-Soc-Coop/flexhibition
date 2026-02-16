@@ -49,7 +49,7 @@ class StoreMuseumRequest extends FormRequest
 
         $validationRules['audio'] = ['nullable', 'array'];
         $validationRules['audio.*'] = ['nullable', 'array'];
-        //$validationRules['audio.*.file'] = ['nullable', 'file', "max:{$audioMaxSizeKb}", "mimes:{$audioMimes}"];
+        $validationRules['audio.*.file'] = ['nullable', 'file', "max:{$audioMaxSizeKb}", "mimes:{$audioMimes}"];
 
         $validationRules['images'] = ['nullable', 'array'];
         $validationRules['images.*'] = ['nullable', 'array'];

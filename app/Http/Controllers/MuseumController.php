@@ -34,8 +34,8 @@ class MuseumController extends Controller
 
             $logo = $museumRecord->getFirstMedia('logo');
             $museum['logo'] = [
-                'url' => $logo->getUrl(),
-                'title' => $logo->getCustomProperty('title'),
+                'url' => $logo?->getUrl(),
+                'title' => $logo?->getCustomProperty('title'),
             ];
 
             $museums[] = $museum;
@@ -68,7 +68,6 @@ class MuseumController extends Controller
      */
     public function store(StoreMuseumRequest $request)
     {
-        //        dd($request->all());
         $data = $request->validated();
 
         DB::beginTransaction();
@@ -81,8 +80,10 @@ class MuseumController extends Controller
             ]);
 
             // Gestione Logo
-            $museum->addMediaFromRequest("logo.file")
-                ->toMediaCollection('logo');
+            if (! empty($data['logo']) && $request->hasFile('logo.file')) {
+                $museum->addMediaFromRequest('logo.file')
+                    ->toMediaCollection('logo');
+            }
 
             // Gestione Audio (Multi-file per lingua) e.g. audio[it][file], audio[it][title]
             if (! empty($data['audio'])) {
@@ -123,7 +124,7 @@ class MuseumController extends Controller
 
         $logo = $museumRecord->getFirstMedia('logo');
         $museumLogo = [
-            'url' => $logo->getUrl(),
+            'url' => $logo?->getUrl(),
         ];
 
         $audio = $museumRecord->getMedia('audio');
@@ -139,7 +140,7 @@ class MuseumController extends Controller
             'title' => $media->getCustomProperty('title'),
             'caption' => $media->getCustomProperty('caption'),
             'group_index' => $media->getCustomProperty('group_index'),
-        ])->groupBy('group_index')->toArray();
+        ])->values()->toArray();
 
         $museumData = [
             'id' => $museumId,
@@ -166,10 +167,10 @@ class MuseumController extends Controller
         $museumName = $museumRecord->getTranslations('name');
         $museumDescription = $museumRecord->getTranslations('description');
 
-        $logo = $museumRecord->getFirstMedia('logo', 'thumb');
+        $logo = $museumRecord->getFirstMedia('logo');
         $museumLogo = [
-            'id' => $logo->id,
-            'url' => $logo->getUrl(),
+            'id' => $logo?->id,
+            'url' => $logo?->getUrl('thumb'),
         ];
 
         $audio = $museumRecord->getMedia('audio');
@@ -188,7 +189,7 @@ class MuseumController extends Controller
             'title' => $media->getCustomProperty('title'),
             'caption' => $media->getCustomProperty('caption'),
             'group_index' => $media->getCustomProperty('group_index'),
-        ])->groupBy('group_index')->toArray();
+        ])->values()->toArray();
 
         $museumData = [
             'id' => $museumId,
@@ -223,8 +224,8 @@ class MuseumController extends Controller
 
             // Gestione Logo
             if (isset($data['logo']) && $data['logo']['id'] === null) {
+                $museum->clearMediaCollection('logo');
                 if ($request->hasFile('logo.file')) {
-                    $museum->clearMediaCollection('logo');
                     $museum->addMediaFromRequest('logo.file')
                         ->toMediaCollection('logo');
                 }
