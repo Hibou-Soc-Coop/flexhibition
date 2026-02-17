@@ -1,52 +1,51 @@
 <?php
 
+use App\Http\Controllers\BackupController;
+use App\Http\Controllers\ExhibitionController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MuseumController;
-use App\Http\Controllers\ExhibitionController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
-Route::prefix('backend')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('backend')->group(function () {
     Route::get('/', function () {
         return Inertia::render('backend/Welcome');
     })->name('home');
 
     Route::get('dashboard', function () {
         return Inertia::render('backend/Dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    })->name('dashboard');
 
-    Route::resource('settings/backups', \App\Http\Controllers\BackupController::class)
-        ->only(['index', 'store'])
-        ->names([
-            'index' => 'backups.index',
-            'store' => 'backups.store',
-        ]);
+    // BACKUPS
+    // Visualizzazione: richiede il permesso "manage backups"
+    Route::get('settings/backups', [BackupController::class, 'index'])
+        ->name('backups.index')
+        ->middleware('can:manage backups');
 
-    Route::post('settings/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+    // Creazione: richiede il permesso "create backups"
+    Route::post('settings/backups', [BackupController::class, 'store'])
+        ->name('backups.store')
+        ->middleware('can:create backups');
 
-    Route::resource('languages', LanguageController::class)->middleware(['auth', 'verified']);
-    Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
-    Route::resource('exhibitions', ExhibitionController::class)->middleware(['auth', 'verified']);
-    Route::resource('posts', PostController::class)->middleware(['auth', 'verified']);
+    // Ripristino: richiede il permesso "restore backups"
+    Route::post('settings/backups/restore', [BackupController::class, 'restore'])
+        ->name('backups.restore')
+        ->middleware('can:restore backups');
+
+    // LINGUE
+    // Tutte le azioni sulle lingue richiedono "manage languages"
+    Route::resource('languages', LanguageController::class)
+        ->middleware('can:manage languages');
+
+    // ALTRE RISORSE (non hai ancora specificato permessi per queste)
+    Route::resource('museums', MuseumController::class);
+    Route::resource('exhibitions', ExhibitionController::class);
+    Route::resource('posts', PostController::class);
 });
-
-// Route::get('museum/{museumId}/{language?}', function ($museumId = null, $language = 'it') {
-//     return Inertia::render('frontend/Museum', [
-//         'museumId' => $museumId,
-//         'language' => $language,
-//         'skipAnimation' => request()->boolean('skipAnimation')
-//     ]);
-// })->name('museum')->where('language', '[a-z]{2}')->where('museumId', '[0-9]+');
-// Route::get('museum/{museumId}/collections/{language?}', [ExhibitionController::class, 'showExhibitions'])->name('collections.index')->where('language', '[a-z]{2}');
-// Route::get('museum/{museumId}/collections/{collectionId}/{language?}', [PostController::class, 'showPosts'])->name('post')->where('language', '[a-z]{2}');
-// Route::get('museum/{museumId}/collections/{collectionId}/posts/{postId}/{language?}', [PostController::class, 'showPostDetail'])->name('post.detail')->where('language', '[a-z]{2}');
-// Route::get('credits/{language?}', function ($language = 'it') {
-//     return Inertia::render('frontend/Credits', ['language' => $language]);
-// })->name('credits')->where('language', '[a-z]{2}');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

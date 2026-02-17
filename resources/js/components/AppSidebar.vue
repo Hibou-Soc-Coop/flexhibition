@@ -18,20 +18,18 @@ import languagesRoutes from '@/routes/languages';
 import museumsRoutes from '@/routes/museums';
 import postsRoutes from '@/routes/posts';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Database, Eye, Folder, Image, Landmark, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+
+const page = usePage();
+const permissions = page.props.auth.permissions as string[];
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: 'Backups',
-        href: backupsIndex(),
-        icon: Database,
     },
     {
         title: 'Musei',
@@ -55,6 +53,13 @@ const settingNavItems: NavItem[] = [
         title: 'Gestisci lingue',
         href: languagesRoutes.index(),
         icon: Folder,
+        authorized: permissions.includes('manage languages'), // This item will only be shown if the user is authorized
+    },
+    {
+        title: 'Backups',
+        href: backupsIndex(),
+        icon: Database,
+        authorized: permissions.includes('manage backups'), // This item will only be shown if the user is authorized
     },
 ];
 

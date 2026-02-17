@@ -28,20 +28,17 @@ const restoreForm = useForm({
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const createBackup = () => {
-    // We can't use Inertia for file download efficiently if we want to stay on page or handle stream easily without custom handling
-    // taking a simpler approach: Submit form via Inertia
-    // But Inertia doesn't support file downloads directly
-    // Actually, simple window.location.href or a generated form submit is better for download.
-    // However, the controller returns response()->download() which works with Inertia if we use window.open or similar
-    // BUT, standard way:
-    window.location.href = store().url;
-    // or if it needs POST (which it does):
+    // For file downloads via POST, we create a temporary form
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = store().url;
 
     // Add CSRF token
     const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+
+    // Also try to get from page props if available (Inertia sometimes shares it)
+    // or from cookie XSRF-TOKEN (needs decoding usually, but form expects _token)
+
     if (token) {
         const input = document.createElement('input');
         input.type = 'hidden';
