@@ -18,7 +18,7 @@ class BackupController extends Controller
 
     public function index()
     {
-        return Inertia::render('Backups/Index');
+        return Inertia::render('backend/Backups/Index');
     }
 
     public function store()
