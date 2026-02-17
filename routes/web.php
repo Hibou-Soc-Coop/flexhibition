@@ -11,7 +11,7 @@ use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
-Route::middleware(['auth', 'verified'])->prefix('backend')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::get('/', function () {
         return Inertia::render('backend/Welcome');
     })->name('home');
