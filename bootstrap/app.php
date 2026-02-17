@@ -6,6 +6,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,7 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+        Integration::handles($exceptions);
+        $exceptions->render(function (UnauthorizedException $e, $request) {
             return redirect()->route('dashboard')
                 ->with('error', 'Non hai i permessi necessari per accedere a questa pagina.');
         });
