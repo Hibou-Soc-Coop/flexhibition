@@ -19,6 +19,15 @@ Route::prefix('backend')->group(function () {
         return Inertia::render('backend/Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
+    Route::resource('settings/backups', \App\Http\Controllers\BackupController::class)
+        ->only(['index', 'store'])
+        ->names([
+            'index' => 'backups.index',
+            'store' => 'backups.store',
+        ]);
+
+    Route::post('settings/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+
     Route::resource('languages', LanguageController::class)->middleware(['auth', 'verified']);
     Route::resource('museums', MuseumController::class)->middleware(['auth', 'verified']);
     Route::resource('exhibitions', ExhibitionController::class)->middleware(['auth', 'verified']);
@@ -39,5 +48,5 @@ Route::prefix('backend')->group(function () {
 //     return Inertia::render('frontend/Credits', ['language' => $language]);
 // })->name('credits')->where('language', '[a-z]{2}');
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';
