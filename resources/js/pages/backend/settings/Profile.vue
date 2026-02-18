@@ -23,7 +23,7 @@ defineProps<Props>();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Impostazioni profilo',
         href: edit().url,
     },
 ];
@@ -34,13 +34,13 @@ const user = page.props.auth.user;
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Profile settings" />
+        <Head title="Impostazioni profilo" />
 
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
-                    title="Profile information"
-                    description="Update your name and email address"
+                    title="Informazioni profilo"
+                    description="Aggiorna il tuo nome e indirizzo email"
                 />
 
                 <Form
@@ -49,7 +49,7 @@ const user = page.props.auth.user;
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
                     <div class="grid gap-2">
-                        <Label for="name">Name</Label>
+                        <Label for="name">Nome</Label>
                         <Input
                             id="name"
                             class="mt-1 block w-full"
@@ -57,13 +57,16 @@ const user = page.props.auth.user;
                             :default-value="user.name"
                             required
                             autocomplete="name"
-                            placeholder="Full name"
+                            placeholder="Nome completo"
                         />
-                        <InputError class="mt-2" :message="errors.name" />
+                        <InputError
+                            class="mt-2"
+                            :message="errors.name"
+                        />
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
+                        <Label for="email">Indirizzo email</Label>
                         <Input
                             id="email"
                             type="email"
@@ -72,20 +75,23 @@ const user = page.props.auth.user;
                             :default-value="user.email"
                             required
                             autocomplete="username"
-                            placeholder="Email address"
+                            placeholder="Indirizzo email"
                         />
-                        <InputError class="mt-2" :message="errors.email" />
+                        <InputError
+                            class="mt-2"
+                            :message="errors.email"
+                        />
                     </div>
 
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
                         <p class="-mt-4 text-sm text-muted-foreground">
-                            Your email address is unverified.
+                            Il tuo indirizzo email non è verificato.
                             <Link
                                 :href="send()"
                                 as="button"
                                 class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                             >
-                                Click here to resend the verification email.
+                                Clicca qui per rinviare l'email di verifica.
                             </Link>
                         </p>
 
@@ -93,8 +99,7 @@ const user = page.props.auth.user;
                             v-if="status === 'verification-link-sent'"
                             class="mt-2 text-sm font-medium text-green-600"
                         >
-                            A new verification link has been sent to your email
-                            address.
+                            Un nuovo link di verifica è stato inviato al tuo indirizzo email.
                         </div>
                     </div>
 
@@ -102,7 +107,7 @@ const user = page.props.auth.user;
                         <Button
                             :disabled="processing"
                             data-test="update-profile-button"
-                            >Save</Button
+                            >Salva</Button
                         >
 
                         <Transition
@@ -115,7 +120,7 @@ const user = page.props.auth.user;
                                 v-show="recentlySuccessful"
                                 class="text-sm text-neutral-600"
                             >
-                                Saved.
+                                Salvato.
                             </p>
                         </Transition>
                     </div>
