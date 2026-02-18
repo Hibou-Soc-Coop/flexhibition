@@ -2,6 +2,7 @@
 import Button from '@/components/hibou/Button.vue';
 import Card from '@/components/hibou/Card.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
+import PageLayout from '@/layouts/PageLayout.vue';
 import postsRoutes from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
 import { type Language, PostData } from '@/types/flexhibition';
