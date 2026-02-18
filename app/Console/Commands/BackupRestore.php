@@ -12,7 +12,7 @@ class BackupRestore extends Command
      *
      * @var string
      */
-    protected $signature = 'backup:restore {file : The path to the backup zip file}';
+    protected $signature = 'backup:restore {file : The path to the backup zip file} {--checksum= : Path to the checksum file}';
 
     /**
      * The console command description.
@@ -24,12 +24,14 @@ class BackupRestore extends Command
     /**
      * Execute the console command.
      */
-    public function handle(BackupService $backupService)
+    public function handle(BackupService $backupService): int
     {
         $file = $this->argument('file');
+        $checksum = $this->option('checksum');
 
         if (! file_exists($file)) {
             $this->error("File not found: {$file}");
+
             return 1;
         }
 
@@ -40,14 +42,20 @@ class BackupRestore extends Command
         $this->info('Starting restore process...');
 
         try {
-            $backupService->restoreBackup($file);
-            $this->info("System restored successfully.");
+            $checksumPath = $checksum;
+            if (! $checksumPath && file_exists($file.'.sha256')) {
+                $checksumPath = $file.'.sha256';
+            }
+
+            $backupService->restoreBackup($file, $checksumPath);
+            $this->info('System restored successfully.');
 
             $this->call('cache:clear');
-            $this->info("Cache cleared.");
+            $this->info('Cache cleared.');
 
         } catch (\Exception $e) {
-            $this->error("Restore failed: ".$e->getMessage());
+            $this->error('Restore failed: '.$e->getMessage());
+
             return 1;
         }
 
