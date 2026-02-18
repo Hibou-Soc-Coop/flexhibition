@@ -11,10 +11,10 @@ import { LoaderCircle } from 'lucide-vue-next';
 
 <template>
     <AuthLayout
-        title="Confirm your password"
-        description="This is a secure area of the application. Please confirm your password before continuing."
+        title="Conferma la tua password"
+        description="Questa è un'area sicura dell'applicazione. Conferma la tua password prima di continuare."
     >
-        <Head title="Confirm password" />
+        <Head title="Conferma password" />
 
         <Form
             v-bind="store.form()"
@@ -47,7 +47,7 @@ import { LoaderCircle } from 'lucide-vue-next';
                             v-if="processing"
                             class="h-4 w-4 animate-spin"
                         />
-                        Confirm Password
+                        Conferma Password
                     </Button>
                 </div>
             </div>

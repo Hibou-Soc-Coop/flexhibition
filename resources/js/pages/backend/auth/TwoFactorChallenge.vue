@@ -2,11 +2,7 @@
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    PinInput,
-    PinInputGroup,
-    PinInputSlot,
-} from '@/components/ui/pin-input';
+import { PinInput, PinInputGroup, PinInputSlot } from '@/components/ui/pin-input';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { store } from '@/routes/two-factor/login';
 import { Form, Head } from '@inertiajs/vue3';
@@ -21,18 +17,18 @@ interface AuthConfigContent {
 const authConfigContent = computed<AuthConfigContent>(() => {
     if (showRecoveryInput.value) {
         return {
-            title: 'Recovery Code',
+            title: 'Codice di recupero',
             description:
-                'Please confirm access to your account by entering one of your emergency recovery codes.',
-            toggleText: 'login using an authentication code',
+                "Conferma l'accesso al tuo account inserendo uno dei tuoi codici di recupero di emergenza.",
+            toggleText: 'accedi utilizzando un codice di autenticazione',
         };
     }
 
     return {
-        title: 'Authentication Code',
+        title: 'Codice di autenticazione',
         description:
-            'Enter the authentication code provided by your authenticator application.',
-        toggleText: 'login using a recovery code',
+            'Inserisci il codice di autenticazione fornito dalla tua applicazione di autenticazione.',
+        toggleText: 'accedi utilizzando un codice di recupero',
     };
 });
 
@@ -53,7 +49,7 @@ const codeValue = computed<string>(() => code.value.join(''));
         :title="authConfigContent.title"
         :description="authConfigContent.description"
     >
-        <Head title="Two-Factor Authentication" />
+        <Head title="Autenticazione a due fattori" />
 
         <div class="space-y-6">
             <template v-if="!showRecoveryInput">
@@ -64,10 +60,12 @@ const codeValue = computed<string>(() => code.value.join(''));
                     @error="code = []"
                     #default="{ errors, processing, clearErrors }"
                 >
-                    <input type="hidden" name="code" :value="codeValue" />
-                    <div
-                        class="flex flex-col items-center justify-center space-y-3 text-center"
-                    >
+                    <input
+                        type="hidden"
+                        name="code"
+                        :value="codeValue"
+                    />
+                    <div class="flex flex-col items-center justify-center space-y-3 text-center">
                         <div class="flex w-full items-center justify-center">
                             <PinInput
                                 id="otp"
@@ -89,11 +87,14 @@ const codeValue = computed<string>(() => code.value.join(''));
                         </div>
                         <InputError :message="errors.code" />
                     </div>
-                    <Button type="submit" class="w-full" :disabled="processing"
-                        >Continue</Button
+                    <Button
+                        type="submit"
+                        class="w-full"
+                        :disabled="processing"
+                        >Continua</Button
                     >
                     <div class="text-center text-sm text-muted-foreground">
-                        <span>or you can </span>
+                        <span>o puoi </span>
                         <button
                             type="button"
                             class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
@@ -115,17 +116,20 @@ const codeValue = computed<string>(() => code.value.join(''));
                     <Input
                         name="recovery_code"
                         type="text"
-                        placeholder="Enter recovery code"
+                        placeholder="Inserisci il codice di recupero"
                         :autofocus="showRecoveryInput"
                         required
                     />
                     <InputError :message="errors.recovery_code" />
-                    <Button type="submit" class="w-full" :disabled="processing"
-                        >Continue</Button
+                    <Button
+                        type="submit"
+                        class="w-full"
+                        :disabled="processing"
+                        >Continua</Button
                     >
 
                     <div class="text-center text-sm text-muted-foreground">
-                        <span>or you can </span>
+                        <span>o puoi </span>
                         <button
                             type="button"
                             class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
