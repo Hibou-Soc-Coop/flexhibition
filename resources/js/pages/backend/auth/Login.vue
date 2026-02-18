@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/vue3';
@@ -20,10 +19,10 @@ defineProps<{
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        title="Accedi al tuo account"
+        description="Inserisci il tuo indirizzo email e la password qui sotto per accedere al pannello di controllo."
     >
-        <Head title="Log in" />
+        <Head title="Accedi" />
 
         <div
             v-if="status"
@@ -40,7 +39,7 @@ defineProps<{
         >
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">Indirizzo email</Label>
                     <Input
                         id="email"
                         type="email"
@@ -63,7 +62,7 @@ defineProps<{
                             class="text-sm"
                             :tabindex="5"
                         >
-                            Forgot password?
+                            Hai dimenticato la password?
                         </TextLink>
                     </div>
                     <Input
@@ -79,9 +78,16 @@ defineProps<{
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
+                    <Label
+                        for="remember"
+                        class="flex items-center space-x-3"
+                    >
+                        <Checkbox
+                            id="remember"
+                            name="remember"
+                            :tabindex="3"
+                        />
+                        <span>Ricordami</span>
                     </Label>
                 </div>
 
@@ -96,13 +102,13 @@ defineProps<{
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Log in
+                    Accedi
                 </Button>
             </div>
 
             <!-- <div class="text-center text-sm text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+                Non hai un account?
+                <TextLink :href="register()" :tabindex="5">Registrati</TextLink>
             </div> -->
         </Form>
     </AuthBase>
