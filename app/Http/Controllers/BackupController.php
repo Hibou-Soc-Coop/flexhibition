@@ -10,7 +10,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BackupController extends Controller
@@ -39,14 +38,14 @@ class BackupController extends Controller
         ]);
     }
 
-    public function store(): BinaryFileResponse|RedirectResponse
+    public function store(): RedirectResponse
     {
         try {
-            $path = $this->backupService->createBackup();
+            $this->backupService->createBackup();
 
-            return response()->download($path);
+            return back()->with('success', 'Backup creato con successo.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Backup failed: '.$e->getMessage());
+            return back()->with('error', 'Creazione backup fallita: '.$e->getMessage());
         }
     }
 
@@ -72,14 +71,14 @@ class BackupController extends Controller
                 Storage::disk('local')->delete($checksumPath);
             }
 
-            return back()->with('success', 'System restored successfully.');
+            return back()->with('success', 'Sistema ripristinato con successo.');
         } catch (\Exception $e) {
             Storage::disk('local')->delete($tempPath);
             if ($checksumPath) {
                 Storage::disk('local')->delete($checksumPath);
             }
 
-            return back()->with('error', 'Restore failed: '.$e->getMessage());
+            return back()->with('error', 'Ripristino fallito: '.$e->getMessage());
         }
     }
 
@@ -94,22 +93,22 @@ class BackupController extends Controller
         Settings::set('backups.schedule_enabled', (bool) $validated['schedule_enabled']);
         Settings::set('backups.schedule_cron', $validated['schedule_cron'] ?? '');
 
-        return back()->with('success', 'Backup settings updated successfully.');
+        return back()->with('success', 'Impostazioni backup aggiornate con successo.');
     }
 
     public function download(string $disk, string $file): StreamedResponse|RedirectResponse
     {
         if (! $this->isAllowedDisk($disk)) {
-            return back()->with('error', 'Invalid backup disk.');
+            return back()->with('error', 'Disco backup non valido.');
         }
 
         if (! $this->isValidBackupFileName($file)) {
-            return back()->with('error', 'Invalid backup filename.');
+            return back()->with('error', 'Nome file backup non valido.');
         }
 
         $path = 'backups/'.$file;
         if (! Storage::disk($disk)->exists($path)) {
-            return back()->with('error', 'Backup file not found.');
+            return back()->with('error', 'File di backup non trovato.');
         }
 
         return response()->streamDownload(function () use ($disk, $path) {

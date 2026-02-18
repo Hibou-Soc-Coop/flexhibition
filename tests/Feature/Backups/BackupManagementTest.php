@@ -65,4 +65,31 @@ class BackupManagementTest extends TestCase
         File::delete($publicPath.'/sample.txt');
         File::delete($dbPath);
     }
+
+    public function test_backup_creation_route_creates_backup_without_download(): void
+    {
+        Settings::set('backups.remote_enabled', false);
+        Settings::set('backups.checksum_enabled', true);
+        Settings::set('backups.retention_days', 30);
+
+        $dbPath = database_path('database.sqlite');
+        File::put($dbPath, 'test');
+
+        $publicPath = storage_path('app/public');
+        File::ensureDirectoryExists($publicPath);
+        File::put($publicPath.'/sample.txt', 'media');
+
+        $user = User::factory()->create();
+        Permission::firstOrCreate(['name' => 'create backups']);
+        $user->givePermissionTo('create backups');
+
+        $response = $this->actingAs($user)->post(route('backups.store'));
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+
+        Storage::disk('local')->deleteDirectory('backups');
+        File::delete($publicPath.'/sample.txt');
+        File::delete($dbPath);
+    }
 }

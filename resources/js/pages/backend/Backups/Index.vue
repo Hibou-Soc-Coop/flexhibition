@@ -12,11 +12,11 @@ import { ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Settings',
+        title: 'Impostazioni',
         href: '#',
     },
     {
-        title: 'Backups',
+        title: 'Backup',
         href: window.location.pathname,
     },
 ];
@@ -56,6 +56,7 @@ const settingsForm = useForm({
     schedule_enabled: props.settings.schedule_enabled,
     schedule_cron: props.settings.schedule_cron,
 });
+const createForm = useForm({});
 const restoreForm = useForm({
     backup_file: null as File | null,
     checksum_file: null as File | null,
@@ -64,28 +65,14 @@ const restoreForm = useForm({
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const createBackup = () => {
-    // For file downloads via POST, we create a temporary form
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = store().url;
-
-    // Add CSRF token
-    const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
-
-    // Also try to get from page props if available (Inertia sometimes shares it)
-    // or from cookie XSRF-TOKEN (needs decoding usually, but form expects _token)
-
-    if (token) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_token';
-        input.value = token;
-        form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+    createForm.post(store().url, {
+        onSuccess: () => {
+            alert('Backup creato con successo.');
+        },
+        onError: () => {
+            alert('Creazione backup fallita. Controlla i log.');
+        },
+    });
 };
 
 const saveSettings = () => {
@@ -99,7 +86,7 @@ const handleRestore = () => {
 
     if (
         !confirm(
-            'Are you sure you want to restore? This will overwrite the current database and media files.',
+            'Sei sicuro di voler ripristinare? Questa operazione sovrascrivera il database e i media attuali.',
         )
     ) {
         return;
@@ -109,11 +96,11 @@ const handleRestore = () => {
         onSuccess: () => {
             restoreForm.reset();
             if (fileInput.value) fileInput.value.value = '';
-            alert('Restore completed successfully.');
+            alert('Ripristino completato con successo.');
         },
         onError: (errors) => {
             console.error(errors);
-            alert('Restore failed. Check console/logs.');
+            alert('Ripristino fallito. Controlla la console o i log.');
         },
     });
 };
@@ -149,7 +136,7 @@ const formatDate = (timestamp: number) => {
 </script>
 
 <template>
-    <Head title="Backups" />
+    <Head title="Backup" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
@@ -157,31 +144,35 @@ const formatDate = (timestamp: number) => {
                 <!-- Export Section -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Export Backup</CardTitle>
+                        <CardTitle>Crea backup</CardTitle>
                         <CardDescription>
-                            Create a full backup of the database and media files. The file will be
-                            downloaded as a ZIP archive.
+                            Crea un backup completo di database e file multimediali.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button @click="createBackup"> Create & Download Backup </Button>
+                        <Button
+                            @click="createBackup"
+                            :disabled="createForm.processing"
+                        >
+                            {{ createForm.processing ? 'Creazione...' : 'Crea backup' }}
+                        </Button>
                     </CardContent>
                 </Card>
 
                 <!-- Import Section -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Restore Backup</CardTitle>
+                        <CardTitle>Ripristina backup</CardTitle>
                         <CardDescription>
-                            Restore the system from a ZIP backup. <br />
+                            Ripristina il sistema da un backup ZIP. <br />
                             <span class="text-red-500 font-bold"
-                                >Warning: This will overwrite existing data!</span
+                                >Attenzione: questa operazione sovrascrivera i dati esistenti!</span
                             >
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div class="grid w-full max-w-sm items-center gap-1.5">
-                            <Label for="backup-file">Backup File (ZIP)</Label>
+                            <Label for="backup-file">File di backup (ZIP)</Label>
                             <Input
                                 id="backup-file"
                                 type="file"
@@ -191,7 +182,7 @@ const formatDate = (timestamp: number) => {
                             />
                         </div>
                         <div class="grid w-full max-w-sm items-center gap-1.5 mt-4">
-                            <Label for="checksum-file">Checksum File (.sha256)</Label>
+                            <Label for="checksum-file">File checksum (.sha256)</Label>
                             <Input
                                 id="checksum-file"
                                 type="file"
@@ -205,7 +196,9 @@ const formatDate = (timestamp: number) => {
                                 @click="handleRestore"
                                 :disabled="restoreForm.processing || !restoreForm.backup_file"
                             >
-                                {{ restoreForm.processing ? 'Restoring...' : 'Upload & Restore' }}
+                                {{
+                                    restoreForm.processing ? 'Ripristino...' : 'Carica e ripristina'
+                                }}
                             </Button>
                         </div>
                         <div
@@ -227,9 +220,9 @@ const formatDate = (timestamp: number) => {
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Backup Settings</CardTitle>
+                        <CardTitle>Impostazioni backup</CardTitle>
                         <CardDescription>
-                            Configure retention, checksum, remote storage, and scheduling.
+                            Configura retention, checksum, storage remoto e pianificazione.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -238,7 +231,7 @@ const formatDate = (timestamp: number) => {
                             @submit.prevent="saveSettings"
                         >
                             <div class="grid gap-2">
-                                <Label for="retention-days">Retention (days)</Label>
+                                <Label for="retention-days">Retention (giorni)</Label>
                                 <Input
                                     id="retention-days"
                                     type="number"
@@ -260,7 +253,9 @@ const formatDate = (timestamp: number) => {
                                     class="h-4 w-4"
                                     v-model="settingsForm.checksum_enabled"
                                 />
-                                <Label for="checksum-enabled">Require checksum on restore</Label>
+                                <Label for="checksum-enabled">
+                                    Richiedi checksum per il ripristino
+                                </Label>
                             </div>
 
                             <div class="flex items-center gap-2">
@@ -270,11 +265,11 @@ const formatDate = (timestamp: number) => {
                                     class="h-4 w-4"
                                     v-model="settingsForm.remote_enabled"
                                 />
-                                <Label for="remote-enabled">Enable remote backups</Label>
+                                <Label for="remote-enabled">Abilita backup remoto</Label>
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="remote-disk">Remote disk</Label>
+                                <Label for="remote-disk">Disco remoto</Label>
                                 <select
                                     id="remote-disk"
                                     class="h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -304,11 +299,11 @@ const formatDate = (timestamp: number) => {
                                     class="h-4 w-4"
                                     v-model="settingsForm.schedule_enabled"
                                 />
-                                <Label for="schedule-enabled">Enable scheduled backups</Label>
+                                <Label for="schedule-enabled">Abilita backup pianificati</Label>
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="schedule-cron">Schedule (cron)</Label>
+                                <Label for="schedule-cron">Pianificazione (cron)</Label>
                                 <Input
                                     id="schedule-cron"
                                     type="text"
@@ -329,7 +324,11 @@ const formatDate = (timestamp: number) => {
                                     type="submit"
                                     :disabled="settingsForm.processing"
                                 >
-                                    {{ settingsForm.processing ? 'Saving...' : 'Save Settings' }}
+                                    {{
+                                        settingsForm.processing ? 'Salvataggio...' : (
+                                            'Salva impostazioni'
+                                        )
+                                    }}
                                 </Button>
                             </div>
                         </form>
@@ -338,20 +337,20 @@ const formatDate = (timestamp: number) => {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Existing Backups</CardTitle>
+                        <CardTitle>Backup disponibili</CardTitle>
                         <CardDescription>
-                            Recent backups stored locally and remotely.
+                            Backup recenti salvati in locale e in remoto.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div class="flex flex-col gap-4">
                             <div>
-                                <div class="text-sm font-semibold">Local</div>
+                                <div class="text-sm font-semibold">Locale</div>
                                 <div
                                     v-if="backups.local.length === 0"
                                     class="text-sm text-muted-foreground"
                                 >
-                                    No local backups found.
+                                    Nessun backup locale trovato.
                                 </div>
                                 <ul
                                     v-else
@@ -371,7 +370,9 @@ const formatDate = (timestamp: number) => {
                                             <span class="text-muted-foreground">
                                                 Checksum:
                                                 {{
-                                                    backup.checksum_exists ? 'Available' : 'Missing'
+                                                    backup.checksum_exists ? 'Disponibile' : (
+                                                        'Mancante'
+                                                    )
                                                 }}
                                             </span>
                                         </div>
@@ -379,19 +380,19 @@ const formatDate = (timestamp: number) => {
                                             variant="secondary"
                                             @click="downloadBackup(backup.disk, backup.name)"
                                         >
-                                            Download
+                                            Scarica
                                         </Button>
                                     </li>
                                 </ul>
                             </div>
 
                             <div>
-                                <div class="text-sm font-semibold">Remote</div>
+                                <div class="text-sm font-semibold">Remoto</div>
                                 <div
                                     v-if="backups.remote.length === 0"
                                     class="text-sm text-muted-foreground"
                                 >
-                                    No remote backups found.
+                                    Nessun backup remoto trovato.
                                 </div>
                                 <ul
                                     v-else
@@ -411,7 +412,9 @@ const formatDate = (timestamp: number) => {
                                             <span class="text-muted-foreground">
                                                 Checksum:
                                                 {{
-                                                    backup.checksum_exists ? 'Available' : 'Missing'
+                                                    backup.checksum_exists ? 'Disponibile' : (
+                                                        'Mancante'
+                                                    )
                                                 }}
                                             </span>
                                         </div>
@@ -419,7 +422,7 @@ const formatDate = (timestamp: number) => {
                                             variant="secondary"
                                             @click="downloadBackup(backup.disk, backup.name)"
                                         >
-                                            Download
+                                            Scarica
                                         </Button>
                                     </li>
                                 </ul>
