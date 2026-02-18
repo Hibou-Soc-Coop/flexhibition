@@ -3,7 +3,6 @@
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ExhibitionController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MuseumController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +29,20 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::post('settings/backups', [BackupController::class, 'store'])
         ->name('backups.store')
         ->middleware('can:create backups');
+
+    // Aggiornamento impostazioni: richiede "manage backups"
+    Route::put('settings/backups/config', [BackupController::class, 'updateSettings'])
+        ->name('backups.settings.update')
+        ->middleware('can:manage backups');
+
+    // Download backup: richiede "manage backups"
+    Route::get('settings/backups/download/{disk}/{file}', [BackupController::class, 'download'])
+        ->name('backups.download')
+        ->middleware('can:manage backups')
+        ->where([
+            'disk' => '[A-Za-z0-9_-]+',
+            'file' => '[A-Za-z0-9._-]+',
+        ]);
 
     // Ripristino: richiede il permesso "restore backups"
     Route::post('settings/backups/restore', [BackupController::class, 'restore'])

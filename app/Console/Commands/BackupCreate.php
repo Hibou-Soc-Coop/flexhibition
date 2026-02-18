@@ -24,7 +24,7 @@ class BackupCreate extends Command
     /**
      * Execute the console command.
      */
-    public function handle(BackupService $backupService)
+    public function handle(BackupService $backupService): int
     {
         $this->info('Starting backup process...');
 
@@ -32,7 +32,8 @@ class BackupCreate extends Command
             $path = $backupService->createBackup();
             $this->info("Backup created successfully at: {$path}");
         } catch (\Exception $e) {
-            $this->error("Backup failed: ".$e->getMessage());
+            $this->error('Backup failed: '.$e->getMessage());
+
             return 1;
         }
 
