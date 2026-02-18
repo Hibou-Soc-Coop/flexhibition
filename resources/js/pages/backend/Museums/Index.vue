@@ -12,6 +12,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 const page = usePage();
 const primaryLanguage = page.props.primaryLanguage as Language | null;
 const primaryLanguageCode = primaryLanguage?.code || 'it';
+
 const props = defineProps<{ museums: MuseumData[]; maxMuseum: number }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,9 +26,7 @@ function truncate(text: string | null | undefined, maxLength: number): string {
     if (!text) return '-';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 }
-/**
- * Helper to safely get translation
- */
+
 function getTranslation(field: Record<string, string> | null, lang: string): string {
     return field ? field[lang] || '' : '';
 }
